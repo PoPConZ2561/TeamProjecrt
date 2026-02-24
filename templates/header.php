@@ -24,7 +24,6 @@
             </a>
             <?php
                     echo $_SESSION["name"];
-            
             ?>
         </div>
     </div>

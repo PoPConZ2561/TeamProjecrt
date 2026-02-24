@@ -56,7 +56,7 @@ session_start();
                 <h1 class="register_text">ลงทะเบียน</h1>
             </div>
 
-            <form class="grid grid-cols-2 gap-x-8 gap-y-4" action="[DATA] users.php" method="post">
+            <form class="grid grid-cols-2 gap-x-8 gap-y-4" action="/../includes/register.php" method="post" name="register">
                 <div class="flex flex-col gap-2">
                     <p class="login_text">ชื่อผู้ใช้<span class="text-red-500"> *</span></p>
                     <input type="text" placeholder="ไรอัน" name="username" class="bg-gray-100 border rounded-sm pl-2 text-sm w-full h-[37px]" required>

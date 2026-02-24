@@ -61,7 +61,7 @@ $page = "index";
             </div>
             <div class="flex flex-col w-[45%] p-6 gap-2">
                 <h1 class="register_text">เข้าสู่ระบบ</h1>
-                <form action="check_login.php" method="post" class="flex flex-col gap-4">
+                <form action="\..\includes\check_login.php" method="post" class="flex flex-col gap-4">
                     <input type="email" name="email" placeholder="อีเมล" class="pl-2 w-full h-[40px] border rounded-sm">
                     <input type="password" name="password" placeholder="รหัสผ่าน" class="pl-2 w-full h-[40px] border rounded-sm">
                     <input type="submit" value="ยืนยัน" class="login_text pl-2 w-full h-[40px] bg-blue-950 rounded-sm">

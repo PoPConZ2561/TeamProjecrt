@@ -1,6 +1,6 @@
 <?php
 session_start();
-$page = "create_event";
+$page = "create";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,7 +43,6 @@ $page = "create_event";
             font-family: "Kanit", sans-serif;
             color: #c0c2c5;
         }
-
     </style>
 </head>
 
@@ -52,7 +51,7 @@ $page = "create_event";
 
     <main class="flex flex-col items-center w-full pt-[80px] pb-10">
         <div class="flex flex-col w-[90%] max-w-5xl bg-white rounded-md shadow-md mt-10 overflow-hidden">
-            <form action="" method="POST" enctype="multipart/form-data" class="flex flex-col w-full">
+            <form action="/../includes/create_event.php" method="POST" enctype="multipart/form-data" class="flex flex-col w-full">
                 <div class="flex flex-col md:flex-row w-full">
 
                     <div class="flex flex-col w-full md:w-2/3 p-10 gap-6">
@@ -61,23 +60,34 @@ $page = "create_event";
                             <input type="text" name="title" placeholder="กรอกชื่ออีเว้นท์"
                                 class="pl-2 text-black head input-style w-full md:w-2/3 h-10 border" required>
                         </div>
+                        <div class="flex flex-col">
+                            <h1 class="head text-blue-950">จำนวนสมาชิก</h1>
+                            <input type="number" name="max_participants" inputmode="numeric" placeholder="กรอกจำนวนสมาชิก"
+                                class="pl-2 text-black head input-style w-full md:w-2/3 h-10 border" required>
+                        </div>
+
+                        <div class="flex flex-col">
+                            <h1 class="head text-blue-950">สถานที่</h1>
+                            <textarea name="location" maxlength="220" placeholder="กรอกสถานที่"
+                                class="pl-2 text-black head input-style w-full md:w-3/4 h-20 resize-none border" required></textarea>
+                        </div>
 
                         <div class="flex flex-col">
                             <h1 class="head text-blue-950">รายละเอียด</h1>
                             <textarea name="description" maxlength="220" placeholder="กรอกรายละเอียด"
-                                class="pl-2 text-black head input-style w-full md:w-3/4 h-32 resize-none border" required></textarea>
+                                class="pl-2 text-black head input-style w-full md:w-3/4 h-20 resize-none border" required></textarea>
                         </div>
 
                         <div class="flex flex-row w-full md:w-3/4 justify-between gap-4">
                             <div class="flex flex-col w-1/2">
                                 <h1 class="head text-blue-950">วันเริ่มต้น</h1>
-                                <input type="date" name="start"
+                                <input type="date" name="start_date"
                                     class="head input-style ml-0 w-full border"
                                     onchange="this.classList.add('text-black')" required>
                             </div>
                             <div class="flex flex-col w-1/2">
                                 <h1 class="head text-blue-950">วันสิ้นสุด</h1>
-                                <input type="date" name="end"
+                                <input type="date" name="end_date"
                                     class="head input-style ml-0 w-full border"
                                     onchange="this.classList.add('text-black')" required>
                             </div>
@@ -99,7 +109,7 @@ $page = "create_event";
                                 </p>
                                 <ul id="fileList" class="text-xs text-gray-700 mt-3 list-none"></ul>
                             </div>
-                            <input id="fileInput" name="picture[]" type="file" class="hidden" multiple>
+                            <input id="fileInput" name="img" type="file" class="hidden" multiple>
                         </label>
                     </div>
 
