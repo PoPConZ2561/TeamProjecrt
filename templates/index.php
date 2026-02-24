@@ -93,7 +93,7 @@ $page = "index";
                     <h2 class="option_header_text text-orange-400 text-2xl font-bold">อีเว้นท์ทั้งหมด</h2>
                 </div>
                 <!-- ไปแก้ไข ให้ข้อมูลตามผู้จัด ใน database -->
-                <?php require("/../includes/showEvent.php"); ?>
+                <?php require_once __DIR__ . '/../includes/showEvent.php'; ?>
             </div>
         </div>
         <?php include 'footer.php' ?>

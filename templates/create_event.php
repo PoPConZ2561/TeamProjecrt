@@ -109,7 +109,7 @@ $page = "create";
                                 </p>
                                 <ul id="fileList" class="text-xs text-gray-700 mt-3 list-none"></ul>
                             </div>
-                            <input id="fileInput" name="img" type="file" class="hidden" multiple>
+                            <input id="fileInput" name="img[]" type="file" class="hidden" multiple>
                         </label>
                     </div>
 
@@ -176,8 +176,14 @@ $page = "create";
         });
 
         function handleFiles(files) {
+            // 1. เพิ่มไฟล์เข้าไปใน Array สำหรับแสดงผลหน้าจอ
             selectedFiles = [...selectedFiles, ...Array.from(files)];
             showFiles();
+
+            // 2. สร้าง DataTransfer เพื่อนำไฟล์ทั้งหมดไปใส่ใน fileInput จริงๆ
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files; // บรรทัดนี้สำคัญมาก! จะทำให้ PHP มองเห็นไฟล์
         }
 
         resetBtn.addEventListener("click", () => {
