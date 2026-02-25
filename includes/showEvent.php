@@ -78,7 +78,7 @@ $result = $stmt->get_result();
                 if ($now >= $start_date && $now <= $end_date) {
                     $btn_text = "เข้าร่วมกิจกรรม";
                     $btn_class = "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:-translate-y-0.5";
-                    $btn_link = "attend_event.php?event_id=" . $row['event_id']; 
+                    $btn_link = "..\includes\OTP.php?event_id=" . $row['event_id']; 
                     $is_disabled = false;
                 } else {
                     $btn_text = "สมัครเรียบร้อยแล้ว";

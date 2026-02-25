@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$status = "pending"; // สถานะเริ่มต้น
+$verify = "pending"; // สถานะเริ่มต้น
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     $otp = $_POST['otp']; // รับ OTP จากฟอร์ม
@@ -12,9 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         } elseif ($otp == $_SESSION['otp_code']) {
             unset($_SESSION['otp_code']);
             unset($_SESSION['otp_expiry']);
-            $status = "approved"; // อัปเดตสถานะเป็น approved
-            $_SESSION["status"] = $status;
-            //header('Location: /../DB/insertData.php'); // ไปยังไฟล์ที่อัปเดตฐานข้อมูล
+            $verify = "approved"; // อัปเดตสถานะเป็น approved
+            $_SESSION["verify"] = $verify;
+            header('Location: /../templates/index.php');
         }
     }
 }
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
 <body class="bg-slate-50 flex items-center justify-center min-h-screen">
     <div class="absolute top-4 left-4">
-        <a href="OTP.php" class="bg-bule-500">ย้อนกลับ</a>
+        <a href="/../templates/index.php" class="bg-bule-500">ย้อนกลับ</a>
     </div>
     <form method="POST" class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm" action="">
         <h1 class="text-xl font-bold mb-4">กรอก OTP</h1>
@@ -40,9 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         <button type="submit" name="button_click" class="w-full bg-indigo-500 text-white p-3 rounded-xl">ส่ง OTP</button>
     </from>
     <p class="flex items-center justify-center">
-        <?php if($status == "approved"){
+        <?php if($verify == "approved"){
             echo "ยืนยันสำเร็จ";
-        } else if($status == "pending" && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        } else if($verify == "pending" && $_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "OTP ไม่ถูกต้อง";
         } ?>
     </p>

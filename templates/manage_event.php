@@ -264,8 +264,8 @@ if ($selected_event_id != null) {
                                     </div>
                                     <div class="flex flex-row gap-2">
                                         <!-- ปุ่ม อนุมัติ / ปฏิเสธ (สร้างลิงก์ชี้ไปหน้าประมวลผล) -->
-                                        <a href="process_registration.php?action=reject&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-500 hover:text-white px-4 py-2 rounded-md transition font-medium text-sm">ปฏิเสธ</a>
-                                        <a href="process_registration.php?action=approve&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md transition font-medium text-sm shadow-sm">อนุมัติ</a>
+                                        <a href="../includes/process_registration.php?action=reject&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-500 hover:text-white px-4 py-2 rounded-md transition font-medium text-sm">ปฏิเสธ</a>
+                                        <a href="../includes/process_registration.php?action=approve&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md transition font-medium text-sm shadow-sm">อนุมัติ</a>
                                     </div>
                                 </div>
                             <?php endforeach; ?>

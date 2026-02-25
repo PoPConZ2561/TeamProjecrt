@@ -17,4 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     VALUES ('', '$name', '$email', '$phone_number', '$birthdate', '$gender', '$password')";
 
     mysqli_query($conn, $sql);
+
+    header("Location: /../templates/login.php");
 }

@@ -10,7 +10,7 @@ $sqlEventdata = "SELECT e.*, i.image_path
         FROM events e 
         LEFT JOIN event_images i ON e.event_id = i.event_id 
         WHERE e.user_id = ? 
-        GROUP BY e.event_id"; 
+        GROUP BY e.event_id";
 
 $stmt = $conn->prepare($sqlEventdata);
 $stmt->bind_param("i", $id);
@@ -25,16 +25,11 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close(); // ปิด statement แรกทันทีเมื่อใช้งานเสร็จ 
 
 $_SESSION["myevent"] = $events;
-print_r($_SESSION['myevent']);
-// ทดสอบแสดงผลข้อมูลกิจกรรม
-foreach ($events as $event) {
-    echo "กิจกรรม: " . $event['title'] . "<br>";
-}
 
 // --- ส่วนที่ 2: ดึงรายชื่อคนเข้าร่วม (ตัวอย่างสำหรับกิจกรรมแรก) ---
 if (!empty($events)) {
     // สมมติว่าต้องการดูคนเข้าร่วมของกิจกรรมแรกที่ดึงมาได้
-    $event_id = $events[0]['event_id']; 
+    $event_id = $events[0]['event_id'];
 
     $sqlUserFormEvent = "SELECT u.name, u.email, u.phone_number, r.status 
             FROM registrations r
@@ -46,15 +41,11 @@ if (!empty($events)) {
     $stmt1->execute();
     $result1 = $stmt1->get_result(); // เปลี่ยนเป็น $stmt1 ให้ถูกต้อง 
 
-    echo "<h3>รายชื่อผู้เข้าร่วม:</h3>";
     $participants = [];
     while ($row1 = $result1->fetch_assoc()) {
-        echo $row1['name'] . " - " . $row1['email'] . "<br>";
         $participants = $row1;
     }
-    print_r($participants);
     $stmt1->close();
 }
 
-
-?>
+header("Location: /../templates/index.php");

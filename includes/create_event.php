@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt2->bind_param("is", $event_id, $dbPath);
                 if ($stmt2->execute()) {
                     echo "ไฟล์ $name อัปโหลดสำเร็จ!<br>";
+                    header("Location: /../templates/index.php");
                 } else {
                     echo "DB Error: " . $stmt2->error . "<br>";
                 }
