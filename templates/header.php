@@ -1,69 +1,60 @@
-<header class="flex flex-row items-center w-full h-[80px] bg-white px-10 fixed z-50 border-b shadow-sm">
-    <div class="flex flex-row items-center w-full h-[40%]">
-        <div class="flex flex-row items-center w-1/2 h-full gap-5 px-3">
-            <a href="index.php">
-                <h1 class="[font-family:'Kanit',sans-serif] text-blue-950 font-bold text-xl">EVENTLY</h1>
-            </a>
-        </div>
-        <div class="flex flex-row items-center justify-end w-1/2 h-full gap-3 px-3">
-            <?php if (isset($page) && $page != 'index'): ?>
-                <a href="index.php" class="hover:text-blue-600 transition">
-                    <p class="option_header_text bg-white">กลับหน้าหลัก</p>
-                </a>
-            <?php endif ?>
-
-            <select class="option_header_text bg-white border border-gray-300 rounded px-2 py-1 outline-none cursor-pointer" onchange="goToPage(this.value)">
-                <option disabled selected>สำหรับผู้จัด</option>
-                <option value="create_event.php">สร้างกิจกรรม</option>
-                <option value="manage_event.php">จัดการกิจกรรม</option>
-            </select>
-
-            <div class="w-[1px] h-[80%] bg-gray-400 mx-2"></div>
-
-            <!-- ให้ user เปลี่ยนรูปได้ ไปแก้เด้อ -->
-            <!-- <a href="profile.php" class="h-full aspect-square">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAM1BMVEXk5ueutLfn6eqrsbTp6+zg4uOwtrnJzc/j5earsbW0uby4vcDQ09XGyszU19jd3+G/xMamCvwDAAAFLklEQVR4nO2d2bLbIAxAbYE3sDH//7WFbPfexG4MiCAcnWmnrzkjIRaD2jQMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwxwQkHJczewxZh2lhNK/CBOQo1n0JIT74/H/qMV0Z7GU3aCcVPuEE1XDCtVLAhgtpme7H0s1N1U7QjO0L8F7llzGeh1hEG/8Lo7TUmmuSrOfns9xnGXpXxsONPpA/B6OqqstjC6Ax/0ujkNdYQQbKNi2k64qiiEZ+ohi35X+2YcZw/WujmslYewiAliVYrxgJYrdwUmwXsU+RdApUi83oNIE27YvrfB/ZPg8+BJETXnqh9CVzBbTQHgojgiCvtqU9thFJg/CKz3VIMKMEkIXxIWqIpIg2SkjYj+xC816mrJae2aiWGykxRNsW0UwiJghJDljYI5CD8GRiCtIsJxizYUPQ2pzItZy5pcisTRdk/a9m4amtNNfBuQkdVhSaYqfpNTSFGfb9GRIakrE2Pm+GFLaCQPqiu0OpWP+HMPQQcgQMiQprWXNmsVwIjQjYi/ZrhAqNTCgr2gu0Jnz85RSSjso0HkMFZ0YZjKkc26a/jlmh9JiDyDxi9oeorTYAzZkwwoMz19pzj9bnH/GP/+qbchjSGflneWYhtTuKdMOmNKZcJ5TjInQKcYXnESd/jQxy0ENpULTNGOGgxpap/oyw9pbUAqhfx2Dbkhovvfgz4iUzoM9+GlK6/Mh4q29hyC1mwro30hpVVLPF9wYQr71RazOeM5/cw81iBRD+A03aM9/C/obbrKjbYSpCmIVG3qT/Q8oeUo3Rz0IL7vI1tEbCB9pSiu8I/aV8x3Kg/BGWrWp4ZVs0nZfmAoEG4h/61yHYIJiFSl6Q0Vk6tTW1N8kYp8hdOkfHYYMXd2Qft+8CYwqYDSKvqIh+MCF8Wgca2u/cwdgeW3TtuVn6+1oBs3yLo5C2JpK6CvQzGpfUkz9UG/87gCsi5o2LIXolxN0FbwAsjOLEr+YJmXn7iR6N0BCt5p5cMxm7eAsfS+/CACQf4CTpKjzgkvr2cVarVTf96372yut7XLJ1sa7lv6VcfgYrWaxqr3Wlo1S6pvStr22sxOtTNPLzdY3nj20bPP+ejFdJYkLsjGLdtPBEbe/mr2bQKiXWJDroA+vtzc0p9aahuwqHMDYrQEXHEw9jwQl3drMpts9JBU1SdktPe5FBRdJQ6bwXBpa57ib2A8kukQDzMjh++Uo7Fo6Wd02Pkf4fknqoo4HtvAIjsqUcjx6DIPgWCaOML9rKI/oqD9/lgNrn+eF+p7j8tnzHBiR7+kdUGw/+V1Kzkc75mMy6U+FMaxjPibiM1U1uGM+puInHpmALZCgP4pt7i840MV8+0R1zPsRB6UTcqpizncYwZ89syDydfyWCwXB1l8/zRNGWbTG/GHKUm9AkxHMc/EGSk3z2+ArEhPEV5TUBLEvUGFcjEUH80J/jveTGOAJEljJbILWGQT3zRYiwuKsUXN1EEJAzBhRJFll7mBUG7KD8EqPkKekBREaL8hMDZLQSG6AQjtHPYmvTQnX0TtpC1SYCe2YdkkyLP3jj5BSbKiuR585eQhTgoje6yIb0Yb0C+mV6EYvebqw5SDy2WmubogZiF2AVxPC2FpDf8H2Q9QWo6IkjUxTWVEI3WY/wrCeSuqJ+eRWzXR/JXwgVjUMozbCOfoEZiSiKVGepqv5CJ8RyR4D7xBeamqa7z3BJ/z17JxuBPdv93d/a2Ki878MMAzDMAzDMAzDMAzDMF/KP09VUmxBAiI3AAAAAElFTkSuQmCC"
-                    class="rounded-full h-full w-full object-cover border border-gray-200">
-            </a> -->
-
-            <!-- ส่วนตรวจสอบการล็อกอิน -->
+<header class="flex flex-row items-center justify-between w-full h-[70px] bg-white px-6 md:px-12 fixed top-0 z-50 border-b border-gray-100 shadow-sm">
+    
+    <!-- ฝั่งซ้าย: โลโก้ และ เมนูนำทาง -->
+    <div class="flex flex-row items-center gap-8 h-full">
+        <!-- โลโก้ -->
+        <a href="index.php" class="flex items-center shrink-0">
+            <h1 class="[font-family:'Kanit',sans-serif] text-blue-900 font-extrabold text-2xl tracking-wide">EVENTLY</h1>
+        </a>
+        
+        <!-- เมนูนำทาง (แทนที่การใช้ Select แบบเก่า) -->
+        <nav class="hidden md:flex flex-row items-center gap-6 mt-1">
+            <a href="index.php" class="text-sm font-medium <?= (isset($page) && $page == 'index') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' ?> transition-colors">หน้าหลัก</a>
+            
+            <!-- โชว์เมนูสร้าง/จัดการกิจกรรม เฉพาะคนที่ล็อกอินแล้ว -->
             <?php if (isset($_SESSION["name"])): ?>
-
-                <!-- === กรณีล็อกอินแล้ว === -->
-                <a href="profile.php" class="h-full aspect-square">
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAM1BMVEXk5ueutLfn6eqrsbTp6+zg4uOwtrnJzc/j5earsbW0uby4vcDQ09XGyszU19jd3+G/xMamCvwDAAAFLklEQVR4nO2d2bLbIAxAbYE3sDH//7WFbPfexG4MiCAcnWmnrzkjIRaD2jQMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwxwQkHJczewxZh2lhNK/CBOQo1n0JIT74/H/qMV0Z7GU3aCcVPuEE1XDCtVLAhgtpme7H0s1N1U7QjO0L8F7llzGeh1hEG/8Lo7TUmmuSrOfns9xnGXpXxsONPpA/B6OqqstjC6Ax/0ujkNdYQQbKNi2k64qiiEZ+ohi35X+2YcZw/WujmslYewiAliVYrxgJYrdwUmwXsU+RdApUi83oNIE27YvrfB/ZPg8+BJETXnqh9CVzBbTQHgojgiCvtqU9thFJg/CKz3VIMKMEkIXxIWqIpIg2SkjYj+xC816mrJae2aiWGykxRNsW0UwiJghJDljYI5CD8GRiCtIsJxizYUPQ2pzItZy5pcisTRdk/a9m4amtNNfBuQkdVhSaYqfpNTSFGfb9GRIakrE2Pm+GFLaCQPqiu0OpWP+HMPQQcgQMiQprWXNmsVwIjQjYi/ZrhAqNTCgr2gu0Jnz85RSSjso0HkMFZ0YZjKkc26a/jlmh9JiDyDxi9oeorTYAzZkwwoMz19pzj9bnH/GP/+qbchjSGflneWYhtTuKdMOmNKZcJ5TjInQKcYXnESd/jQxy0ENpULTNGOGgxpap/oyw9pbUAqhfx2Dbkhovvfgz4iUzoM9+GlK6/Mh4q29hyC1mwro30hpVVLPF9wYQr71RazOeM5/cw81iBRD+A03aM9/C/obbrKjbYSpCmIVG3qT/Q8oeUo3Rz0IL7vI1tEbCB9pSiu8I/aV8x3Kg/BGWrWp4ZVs0nZfmAoEG4h/61yHYIJiFSl6Q0Vk6tTW1N8kYp8hdOkfHYYMXd2Qft+8CYwqYDSKvqIh+MCF8Wgca2u/cwdgeW3TtuVn6+1oBs3yLo5C2JpK6CvQzGpfUkz9UG/87gCsi5o2LIXolxN0FbwAsjOLEr+YJmXn7iR6N0BCt5p5cMxm7eAsfS+/CACQf4CTpKjzgkvr2cVarVTf96372yut7XLJ1sa7lv6VcfgYrWaxqr3Wlo1S6pvStr22sxOtTNPLzdY3nj20bPP+ejFdJYkLsjGLdtPBEbe/mr2bQKiXWJDroA+vtzc0p9aahuwqHMDYrQEXHEw9jwQl3drMpts9JBU1SdktPe5FBRdJQ6bwXBpa57ib2A8kukQDzMjh++Uo7Fo6Wd02Pkf4fknqoo4HtvAIjsqUcjx6DIPgWCaOML9rKI/oqD9/lgNrn+eF+p7j8tnzHBiR7+kdUGw/+V1Kzkc75mMy6U+FMaxjPibiM1U1uGM+puInHpmALZCgP4pt7i840MV8+0R1zPsRB6UTcqpizncYwZ89syDydfyWCwXB1l8/zRNGWbTG/GHKUm9AkxHMc/EGSk3z2+ArEhPEV5TUBLEvUGFcjEUH80J/jveTGOAJEljJbILWGQT3zRYiwuKsUXN1EEJAzBhRJFll7mBUG7KD8EqPkKekBREaL8hMDZLQSG6AQjtHPYmvTQnX0TtpC1SYCe2YdkkyLP3jj5BSbKiuR585eQhTgoje6yIb0Yb0C+mV6EYvebqw5SDy2WmubogZiF2AVxPC2FpDf8H2Q9QWo6IkjUxTWVEI3WY/wrCeSuqJ+eRWzXR/JXwgVjUMozbCOfoEZiSiKVGepqv5CJ8RyR4D7xBeamqa7z3BJ/z17JxuBPdv93d/a2Ki878MMAzDMAzDMAzDMAzDMF/KP09VUmxBAiI3AAAAAElFTkSuQmCC"
-                        class="rounded-full h-full w-full object-cover border border-gray-200">
-                </a>
-                <span class="font-medium text-blue-950 mr-2">
-                    <a href="profile.php"><?php echo htmlspecialchars($_SESSION["name"]); ?></a>
-                </span>
-
-                <a href="/../includes/logout.php" onclick="return confirm('คุณต้องการออกจากระบบใช่หรือไม่?')"
-                    class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded-md transition-colors text-sm font-medium border border-red-100">
-                    ออกจากระบบ
-                </a>
-
-            <?php else: ?>
-
-                <!-- === กรณียังไม่ได้ล็อกอิน === -->
-                <a href="login.php"
-                    class="px-4 py-1.5 text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded-md transition-colors text-sm font-medium mr-1">
-                    เข้าสู่ระบบ
-                </a>
-                <a href="register.php"
-                    class="px-4 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors text-sm font-medium shadow-sm">
-                    สมัครสมาชิก
-                </a>
-
+                <a href="create_event.php" class="text-sm font-medium <?= (isset($page) && $page == 'create') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' ?> transition-colors">สร้างกิจกรรม</a>
+                <a href="manage_event.php" class="text-sm font-medium <?= (isset($page) && $page == 'manage') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' ?> transition-colors">จัดการกิจกรรม</a>
             <?php endif; ?>
-        </div>
+        </nav>
+    </div>
+
+    <!-- ฝั่งขวา: โปรไฟล์ และ ปุ่มเข้าสู่ระบบ -->
+    <div class="flex flex-row items-center gap-3 h-full mt-1">
+        
+        <?php if (isset($_SESSION["name"])): ?>
+            
+            <!-- === กรณีล็อกอินแล้ว === -->
+            <div class="flex flex-row items-center gap-3 mr-2">
+                <!-- สร้างรูปโปรไฟล์จากชื่อ User (ตัวอักษรย่อ) อัตโนมัติ -->
+                <a href="profile.php" class="h-9 w-9 rounded-full overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors shadow-sm shrink-0">
+                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($_SESSION['name']) ?>&background=E0E7FF&color=3730A3&font-family=Kanit&bold=true" 
+                         alt="Profile" 
+                         class="h-full w-full object-cover">
+                </a>
+                
+                <a href="profile.php" class="font-medium text-sm text-gray-700 hover:text-blue-600 transition-colors hidden sm:block">
+                    <?php echo htmlspecialchars($_SESSION["name"]); ?>
+                </a>
+            </div>
+
+            <div class="w-[1px] h-[40%] bg-gray-300 mx-1 hidden sm:block"></div>
+
+            <a href="../includes/logout.php" onclick="return confirm('คุณต้องการออกจากระบบใช่หรือไม่?')"
+               class="px-3 py-2 text-sm font-medium text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors">
+                ออกจากระบบ
+            </a>
+
+        <?php else: ?>
+            
+            <!-- === กรณียังไม่ได้ล็อกอิน === -->
+            <a href="login.php" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+                เข้าสู่ระบบ
+            </a>
+            <a href="register.php" class="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm">
+                สมัครสมาชิก
+            </a>
+            
+        <?php endif; ?>
     </div>
 </header>
-
-<script>
-    function goToPage(page) {
-        if (page !== "") {
-            window.location.href = page;
-        }
-    }
-</script>
