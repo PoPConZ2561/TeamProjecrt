@@ -40,7 +40,7 @@ $result = $conn->query($sql);
                 </p>
                 <div class="mt-auto flex justify-end">
                     <button class="bg-green-400 hover:bg-green-500 text-white px-4 py-2 rounded-md shadow-sm transition-colors">
-                        จำนวนที่รับ: <?php echo $row["max_participants"] ?> คน
+                        สมัคร <?php echo $row["max_participants"] ?> คน
                     </button>
                 </div>
             </div>

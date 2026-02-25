@@ -79,10 +79,10 @@ $page = "index";
                         </div>
                         <p class="option_text">วันเริ่มต้น</p>
                         <input type="date"
-                            class="text-sm text-gray-400 w-full pl-1 bg-white rounded-sm border" required>
+                            class="text-sm text-gray-400 w-full pl-1 bg-white rounded-sm border">
                         <p class="option_text">วันสิ้นสุด</p>
                         <input type="date"
-                            class="text-sm text-gray-400 w-full pl-1 bg-white rounded-sm border" required>
+                            class="text-sm text-gray-400 w-full pl-1 bg-white rounded-sm border">
                         <input type="submit" value="ค้นหา" class="mt-2 text-white h-10 bg-green-400 rounded-md shadow-sm">
                     </form>
                 </div>
