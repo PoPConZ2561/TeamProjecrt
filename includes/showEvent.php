@@ -105,8 +105,8 @@ $result = $stmt->get_result();
             // 1. พร้อมให้สมัคร
             else {
                 $btn_text = "สมัครเข้าร่วมกิจกรรม";
-                $btn_class = "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:-translate-y-0.5";
-                $btn_link = "join_event.php?user_id={$current_user_id}&event_id={$row['event_id']}";
+                $btn_class = "bg-green-600 hover:bg-green-700 text-white shadow-md hover:-translate-y-0.5";
+                $btn_link = "../includes/reg_event.php?user_id={$current_user_id}&event_id={$row['event_id']}";
                 $is_disabled = false;
             }
         ?>

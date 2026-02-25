@@ -8,6 +8,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// ป้องกัน Error กรณีบางตัวแปรไม่มีค่าใน Session
+$user_name = $_SESSION['name'] ?? 'ไม่ระบุชื่อ';
+$user_email = $_SESSION['email'] ?? 'ไม่ระบุอีเมล';
+$user_birthdate = isset($_SESSION['birthdate']) ? date('d / m / Y', strtotime($_SESSION['birthdate'])) : '-';
+$user_phone = $_SESSION['phone_number'] ?? '-';
+$user_gender = $_SESSION['gender'] ?? '-';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,135 +21,125 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVENTLY - profile</title>
+    <title>EVENTLY - My Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        .title_text {
-            font-family: "Kanit", sans-serif;
-            font-size: 2em;
-            font-weight: bolder;
-            color: #172554;
-            line-height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        .option_header_text {
-            font-family: "Kanit", sans-serif;
-            font-size: 200;
-            font-weight: 300;
-            color: #172554;
-        }
-
-        .option_text {
-            font-family: "Kanit", sans-serif;
-            font-size: small;
-            color: #172554;
-        }
-
-        .head {
-            font-family: "Kanit", sans-serif;
-            font-size: large;
-            color: #c0c2c5;
-        }
-
-        .description {
-            font-family: "Kanit", sans-serif;
-            font-size: small;
-            font-weight: 200;
-            color: black;
-        }
-
-        .r {
-            background-color: red;
-        }
+        body { font-family: "Kanit", sans-serif; }
     </style>
 </head>
 
-<body class="flex flex-col h-screen w-full">
+<body class="flex flex-col min-h-screen w-full bg-gray-50">
+    
     <?php include 'header.php' ?>
-    <main class="flex flex-row justify-center w-full h-full bg-gray-100 pt-[100px] gap-2">
+    
+    <main class="flex-grow flex items-center justify-center pt-[100px] pb-12 px-4 md:px-8">
 
-        <!-- Panel ซ้าย: รูปและชื่อ -->
-        <div class="flex flex-col w-[20%] h-[80%] bg-white rounded-t-lg shadow-md">
-            <div class="w-full h-[34%] flex flex-col items-center bg-gradient-to-b from-purple-300 via-gray-100 to-purple-100 rounded-t-lg">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAM1BMVEXk5ueutLfn6eqrsbTp6+zg4uOwtrnJzc/j5earsbW0uby4vcDQ09XGyszU19jd3+G/xMamCvwDAAAFLklEQVR4nO2d2bLbIAxAbYE3sDH//7WFbPfexG4MiCAcnWmnrzkjIRaD2jQMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwxwQkHJczewxZh2lhNK/CBOQo1n0JIT74/H/qMV0Z7GU3aCcVPuEE1XDCtVLAhgtpme7H0s1N1U7QjO0L8F7llzGeh1hEG/8Lo7TUmmuSrOfns9xnGXpXxsONPpA/B6OqqstjC6Ax/0ujkNdYQQbKNi2k64qiiEZ+ohi35X+2YcZw/WujmslYewiAliVYrxgJYrdwUmwXsU+RdApUi83oNIE27YvrfB/ZPg8+BJETXnqh9CVzBbTQHgojgiCvtqU9thFJg/CKz3VIMKMEkIXxIWqIpIg2SkjYj+xC816mrJae2aiWGykxRNsW0UwiJghJDljYI5CD8GRiCtIsJxizYUPQ2pzItZy5pcisTRdk/a9m4amtNNfBuQkdVhSaYqfpNTSFGfb9GRIakrE2Pm+GFLaCQPqiu0OpWP+HMPQQcgQMiQprWXNmsVwIjQjYi/ZrhAqNTCgr2gu0Jnz85RSSjso0HkMFZ0YZjKkc26a/jlmh9JiDyDxi9oeorTYAzZkwwoMz19pzj9bnH/GP/+qbchjSGflneWYhtTuKdMOmNKZcJ5TjInQKcYXnESd/jQxy0ENpULTNGOGgxpap/oyw9pbUAqhfx2Dbkhovvfgz4iUzoM9+GlK6/Mh4q29hyC1mwro30hpVVLPF9wYQr71RazOeM5/cw81iBRD+A03aM9/C/obbrKjbYSpCmIVG3qT/Q8oeUo3Rz0IL7vI1tEbCB9pSiu8I/aV8x3Kg/BGWrWp4ZVs0nZfmAoEG4h/61yHYIJiFSl6Q0Vk6tTW1N8kYp8hdOkfHYYMXd2Qft+8CYwqYDSKvqIh+MCF8Wgca2u/cwdgeW3TtuVn6+1oBs3yLo5C2JpK6CvQzGpfUkz9UG/87gCsi5o2LIXolxN0FbwAsjOLEr+YJmXn7iR6N0BCt5p5cMxm7eAsfS+/CACQf4CTpKjzgkvr2cVarVTf96372yut7XLJ1sa7lv6VcfgYrWaxqr3Wlo1S6pvStr22sxOtTNPLzdY3nj20bPP+ejFdJYkLsjGLdtPBEbe/mr2bQKiXWJDroA+vtzc0p9aahuwqHMDYrQEXHEw9jwQl3drMpts9JBU1SdktPe5FBRdJQ6bwXBpa57ib2A8kukQDzMjh++Uo7Fo6Wd02Pkf4fknqoo4HtvAIjsqUcjx6DIPgWCaOML9rKI/oqD9/lgNrn+eF+p7j8tnzHBiR7+kdUGw/+V1Kzkc75mMy6U+FMaxjPibiM1U1uGM+puInHpmALZCgP4pt7i840MV8+0R1zPsRB6UTcqpizncYwZ89syDydfyWCwXB1l8/zRNGWbTG/GHKUm9AkxHMc/EGSk3z2+ArEhPEV5TUBLEvUGFcjEUH80J/jveTGOAJEljJbILWGQT3zRYiwuKsUXN1EEJAzBhRJFll7mBUG7KD8EqPkKekBREaL8hMDZLQSG6AQjtHPYmvTQnX0TtpC1SYCe2YdkkyLP3jj5BSbKiuR585eQhTgoje6yIb0Yb0C+mV6EYvebqw5SDy2WmubogZiF2AVxPC2FpDf8H2Q9QWo6IkjUxTWVEI3WY/wrCeSuqJ+eRWzXR/JXwgVjUMozbCOfoEZiSiKVGepqv5CJ8RyR4D7xBeamqa7z3BJ/z17JxuBPdv93d/a2Ki878MMAzDMAzDMAzDMAzDMF/KP09VUmxBAiI3AAAAAElFTkSuQmCC"
-                    class="w-24 h-24 object-cover rounded-[50%] border-white border-4 mt-10">
-            </div>
-            <div class="w-full h-[66%] flex flex-col items-center pt-12">
-                <!-- ดึงชื่อและอีเมลมาแสดง -->
-                <h1 class="title_text"><?php echo htmlspecialchars($_SESSION['name']); ?></h1>
-                <p class="option_text text-gray-400 mt-2"><?php echo htmlspecialchars($_SESSION['email']); ?></p>
-            </div>
-        </div>
+        <!-- กล่องการ์ดหลัก (Responsive: มือถือเรียงลงล่าง, คอมแบ่งซ้ายขวา) -->
+        <div class="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-        <!-- Panel ขวา: ข้อมูลส่วนตัว -->
-        <div class="flex flex-col w-[40%] h-[80%] bg-white shadow-md rounded-lg relative">
-            <div class="grid grid-cols-2 grid-rows-3 w-full h-auto">
-
-                <div class="flex flex-col p-4 border-b border-r">
-                    <h1 class="option_header_text font-bold text-gray-500">ชื่อ - นามสกุล</h1>
-                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['name']); ?></p>
-                </div>
-
-                <div class="flex flex-col p-4 border-b">
-                    <h1 class="option_header_text font-bold text-gray-500">วันเกิด</h1>
-                    <!-- แปลงรูปแบบวันที่ให้อ่านง่ายขึ้น เช่น 25/02/2026 -->
-                    <p class="option_text text-lg mt-1"><?php echo date('d / m / Y', strtotime($_SESSION['birthdate'])); ?></p>
-                </div>
-
-                <div class="flex flex-col p-4 border-b border-r">
-                    <h1 class="option_header_text font-bold text-gray-500">อีเมล</h1>
-                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['email']); ?></p>
-                </div>
-
-                <div class="flex flex-col p-4 border-b">
-                    <h1 class="option_header_text font-bold text-gray-500">เบอร์โทรศัพท์</h1>
-                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['phone_number']); ?></p>
-                </div>
-
-                <div class="flex flex-col p-4 border-b border-r">
-                    <h1 class="option_header_text font-bold text-gray-500">เพศ</h1>
-                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['gender']); ?></p>
-                </div>
-
-                <div class="flex flex-col p-4 border-b">
-                    <!-- เว้นว่างไว้จัด Layout ให้สวยงาม หรือใส่ข้อมูลอื่นเพิ่มในอนาคต -->
-                </div>
-            </div>
-
-            <!-- ปุ่มกลับหน้าหลัก -->
-                <a href="index.php" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-6 rounded-md shadow-sm transition-colors flex items-center gap-2 border border-gray-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                    </svg>
-                    กลับหน้าหลัก
-                </a>
+            <!-- ========================================== -->
+            <!-- Panel ซ้าย: รูปและชื่อ (ใช้พื้นหลังสีน้ำเงินเข้ม) -->
+            <!-- ========================================== -->
+            <div class="w-full md:w-2/5 bg-gradient-to-b from-blue-900 to-blue-950 p-10 flex flex-col items-center justify-center text-center">
                 
-            <!-- ปุ่มแก้ไขข้อมูลส่วนตัว (จัดให้อยู่ด้านล่างขวา) -->
-            <div class="absolute bottom-6 right-6">
-                <!-- ตั้งลิงก์ไปยังหน้า edit_profile.php (คุณสามารถสร้างหน้านี้ในภายหลังได้) -->
-                <a href="edit_profile.php" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md shadow-sm transition-colors flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                    </svg>
-                    แก้ไขข้อมูลส่วนตัว
-                </a>
+                <!-- รูปโปรไฟล์อัจฉริยะ (สร้างจากชื่อ) -->
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg mb-5 bg-white shrink-0">
+                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($user_name) ?>&background=E0E7FF&color=3730A3&font-family=Kanit&bold=true&size=128" 
+                         alt="Profile" 
+                         class="w-full h-full object-cover">
+                </div>
+                
+                <h1 class="text-2xl font-bold text-white mb-1"><?= htmlspecialchars($user_name); ?></h1>
+                <p class="text-blue-200 text-sm font-light bg-blue-900/50 px-3 py-1 rounded-full border border-blue-800/50">
+                    <?= htmlspecialchars($user_email); ?>
+                </p>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- Panel ขวา: ข้อมูลส่วนตัว -->
+            <!-- ========================================== -->
+            <div class="w-full md:w-3/5 p-8 lg:p-10 flex flex-col">
+                
+                <h2 class="text-xl font-bold text-gray-800 border-b border-gray-100 pb-4 mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                    ข้อมูลส่วนตัว
+                </h2>
+
+                <!-- ตารางข้อมูล -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8 mb-8">
+                    
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-gray-500 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            ชื่อ - นามสกุล
+                        </span>
+                        <p class="text-lg text-gray-900 font-medium"><?= htmlspecialchars($user_name); ?></p>
+                    </div>
+                    
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-gray-500 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            วันเกิด
+                        </span>
+                        <p class="text-lg text-gray-900 font-medium"><?= $user_birthdate; ?></p>
+                    </div>
+                    
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-gray-500 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            อีเมล
+                        </span>
+                        <p class="text-lg text-gray-900 font-medium"><?= htmlspecialchars($user_email); ?></p>
+                    </div>
+                    
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-gray-500 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            เบอร์โทรศัพท์
+                        </span>
+                        <p class="text-lg text-gray-900 font-medium"><?= htmlspecialchars($user_phone); ?></p>
+                    </div>
+                    
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-gray-500 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            เพศ
+                        </span>
+                        <p class="text-lg text-gray-900 font-medium"><?= htmlspecialchars($user_gender); ?></p>
+                    </div>
+                    
+                </div>
+
+                <!-- ========================================== -->
+                <!-- แถบปุ่มด้านล่าง -->
+                <!-- ========================================== -->
+                <div class="mt-auto flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-100">
+                    
+                    <!-- ปุ่มกลับหน้าหลัก -->
+                    <a href="index.php" class="w-full sm:w-auto px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium rounded-lg border border-gray-200 transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                        กลับหน้าหลัก
+                    </a>
+
+                    <!-- ปุ่มแก้ไขข้อมูลส่วนตัว -->
+                    <a href="edit_profile.php" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
+                        แก้ไขข้อมูลส่วนตัว
+                    </a>
+
+                </div>
+
             </div>
 
         </div>
 
     </main>
-</body>
 
+    <?php include 'footer.php' ?>
+</body>
 </html>

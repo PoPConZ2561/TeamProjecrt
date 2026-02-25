@@ -11,8 +11,8 @@ if (!isset($_SESSION['user_id'])) {
     die("กรุณาเข้าสู่ระบบก่อน");
 }
 
-$user_id = $_SESSION['user_id'];
-$event_id = $_POST['event_id'] ?? null;
+$user_id = $_GET['user_id'];
+$event_id = $_GET['event_id'] ?? null;
 
 if (!$event_id) {
     die("ไม่พบกิจกรรม");
