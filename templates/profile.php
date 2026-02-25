@@ -81,49 +81,8 @@ if (!isset($_SESSION['user_id'])) {
                     class="w-24 h-24 object-cover rounded-[50%] border-white border-4 mt-10">
             </div>
             <div class="w-full h-[66%] flex flex-col items-center pt-12">
-<<<<<<< HEAD
-                <h1 class="title_text">
-                    <?php echo $_SESSION["username"] ?>
-                </h1>
-                <p class="option_text text-gray-400">
-                    <?php echo $_SESSION["email"] ?>
-                </p>
-            </div>
-        </div>
-        <div class="flex flex-col w-[30%] h-[80%] bg-white shadow-md">
-            <div class="grid grid-cols-2 grid-rows-3 w-full h-1/2">
-                <div class="flex flex-col p-2 border-b border-r">
-                    <h1 class="option_header_text">ชื่อ</h1>
-                    <p class="option_text">
-                        <?php echo $_SESSION["username"] ?>
-                    </p>
-                </div>
-                <div class="flex flex-col p-2 border-b border-r">
-                    <h1 class="option_header_text">วันเกิด</h1>
-                    <p class="option_text">
-                        <?php echo $_SESSION["birthdate"] ?>
-                    </p>
-                </div>
-                <div class="flex flex-col p-2 border-b border-r">
-                    <h1 class="option_header_text">อีเมล</h1>
-                    <p class="option_text">
-                        <?php echo $_SESSION["email"] ?>
-                    </p>
-                </div>
-                <div class="flex flex-col p-2 border-b border-r">
-                    <h1 class="option_header_text">เบอร์โทรศัพท์</h1>
-                    <p class="option_text">
-                        <?php echo $_SESSION["phone_number"] ?>
-                    </p>
-                </div>
-                <div class="flex flex-col p-2 border-b border-r">
-                    <h1 class="option_header_text">เพศ</h1>
-                    <p class="option_text">
-                        <?php echo $_SESSION["gender"] ?>
-                    </p>
-=======
                 <!-- ดึงชื่อและอีเมลมาแสดง -->
-                <h1 class="title_text"><?php echo htmlspecialchars($_SESSION['name']); ?></h1>
+                <h1 class="title_text"><?php echo htmlspecialchars($_SESSION['username']); ?></h1>
                 <p class="option_text text-gray-400 mt-2"><?php echo htmlspecialchars($_SESSION['email']); ?></p>
             </div>
         </div>
@@ -134,7 +93,7 @@ if (!isset($_SESSION['user_id'])) {
 
                 <div class="flex flex-col p-4 border-b border-r">
                     <h1 class="option_header_text font-bold text-gray-500">ชื่อ - นามสกุล</h1>
-                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['name']); ?></p>
+                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['username']); ?></p>
                 </div>
 
                 <div class="flex flex-col p-4 border-b">
@@ -160,7 +119,6 @@ if (!isset($_SESSION['user_id'])) {
 
                 <div class="flex flex-col p-4 border-b">
                     <!-- เว้นว่างไว้จัด Layout ให้สวยงาม หรือใส่ข้อมูลอื่นเพิ่มในอนาคต -->
->>>>>>> 1f11d91c34f805b7927f480aad66f68668e229a1
                 </div>
             </div>
 
