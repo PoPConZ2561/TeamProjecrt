@@ -167,7 +167,7 @@ if ($selected_event_id != null) {
 
                 <!-- กล่อง 1: แก้ไขข้อมูลกิจกรรม -->
                 <div class="flex flex-col w-full bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <form action="process_update_event.php" method="post" enctype="multipart/form-data" class="flex flex-col lg:flex-row w-full gap-8">
+                    <form action="..\includes\process_update_event.php" method="post" enctype="multipart/form-data" class="flex flex-col lg:flex-row w-full gap-8">
                         <input type="hidden" name="event_id" value="<?= $selected_event['event_id'] ?>">
                         
                         <!-- ฝั่งซ้ายฟอร์ม (Text) -->
