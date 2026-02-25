@@ -25,7 +25,7 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close(); // ปิด statement แรกทันทีเมื่อใช้งานเสร็จ 
 
 $_SESSION["myevent"] = $events;
-
+print_r($_SESSION['myevent']);
 // ทดสอบแสดงผลข้อมูลกิจกรรม
 foreach ($events as $event) {
     echo "กิจกรรม: " . $event['title'] . "<br>";

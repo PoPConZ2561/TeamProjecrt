@@ -1,6 +1,12 @@
 <?php
 session_start();
 $page = "manage";
+
+$selectedEvent = null;
+if (isset($_GET['edit'])) {
+    $index = $_GET['edit'];
+    $selectedEvent = $_SESSION['myevent'][$index];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,27 +80,25 @@ $page = "manage";
             <!-- แก้ไข้ให้ข้อมูลตรงกับ data -->
             <input type="text" placeholder="ค้นหากิจกรรม..." class="option_text w-[90%] pl-2 text-lg rounded-sm h-12 mx-auto my-4">
             <div class="flex flex-col items-end overflow-y-auto w-full h-[90%] py-4 gap-2">
-                <div class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer">
-                    <h1 class="option_header_text ">Title</h1>
-                    <div class="flex flex-row">
-                        <p class="description">12/1/68 - 14/1/68</p>
-                        <p class="description ml-auto">2 คน</p>
-                    </div>
-                </div>
-                <div class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer">
-                    <h1 class="option_header_text ">Title</h1>
-                    <div class="flex flex-row">
-                        <p class="description">12/1/68 - 14/1/68</p>
-                        <p class="description ml-auto">2 คน</p>
-                    </div>
-                </div>
-                <div class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer">
-                    <h1 class="option_header_text ">Title</h1>
-                    <div class="flex flex-row">
-                        <p class="description">12/1/68 - 14/1/68</p>
-                        <p class="description ml-auto">2 คน</p>
-                    </div>
-                </div>
+                <?php foreach ($_SESSION['myevent'] as $index => $each): ?>
+                    <?php $date1 = new DateTime($each['start_date']); ?>
+                    <?php $date2 = new DateTime($each['end_date']); ?>
+                    <a href="?edit=<?= $index ?>"
+                        class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer block">
+                        <h1 class="option_header_text">
+                            <?= $each['title'] ?>
+                        </h1>
+                        <div class="flex flex-row">
+                            <p class="description">
+                                <?= $date1->format("d/m/Y") ?> - <?= $date2->format("d/m/Y") ?>
+                            </p>
+                            <p class="description ml-auto">
+                                <?= $each['max_participants'] ?> คน
+                            </p>
+                        </div>
+                    </a>
+
+                <?php endforeach ?>
             </div>
         </div>
 
@@ -110,36 +114,46 @@ $page = "manage";
                         <div class="flex flex-row gap-2">
                             <div class="flex flex-col">
                                 <h1 class="head text-blue-950">ชื่ออีเว้นท์</h1>
-                                <input type="text" name="title" value="(ชื่ออีเว้นท์)" class="head pl-2 ml-4 text-black mt-2 w-full h-10 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>
+                                <input type="text" name="title" value="<?= $selectedEvent['title'] ?? '' ?>" class="head pl-2 ml-4 text-black mt-2 w-full h-10 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>
                             </div>
                             <div class="flex flex-col">
                                 <h1 class="head text-blue-950">จำนวนสมาชิก</h1>
-                                <input type="number" name="max_participants" inputmode="numeric" placeholder="(100)"
+                                <input type="number" name="max_participants" inputmode="numeric" placeholder="<?= $selectedEvent['max_participants'] ?>"
                                     class="head pl-2 ml-4 text-black mt-2 w-1/2 h-10 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>
                             </div>
                         </div>
 
                         <div class="flex flex-col">
                             <h1 class="head text-blue-950">สถานที่</h1>
-                            <textarea name="location" maxlength="220" class="head resize-none pl-2 ml-4 text-black mt-2 w-2/3 h-20 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>(รายละเอียด)</textarea>
+                            <textarea name="location" maxlength="220" class="head resize-none pl-2 ml-4 text-black mt-2 w-2/3 h-20 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required><?= $selectedEvent['location'] ?></textarea>
                         </div>
                         <div class="flex flex-col">
                             <h1 class="head text-blue-950">รายละเอียด</h1>
-                            <textarea name="description" maxlength="220" class="head resize-none pl-2 ml-4 text-black mt-2 w-2/3 h-20 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>(รายละเอียด)</textarea>
+                            <textarea name="description" maxlength="220" class="head resize-none pl-2 ml-4 text-black mt-2 w-2/3 h-20 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required><?= $selectedEvent['description'] ?></textarea>
                         </div>
+                        <?php $fDate = new DateTime($selectedEvent['start_date']) ?>
+                        <?php $eDate = new DateTime($selectedEvent['end_date']) ?>
+
                         <div class="flex flex-row w-2/3 justify-between">
+
                             <div class="flex flex-col w-[45%]">
                                 <h1 class="head text-blue-950">วันเริ่มต้น</h1>
-                                <input type="date" name="start_date" value="2026-02-21" class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none" required>
+                                <input type="date"
+                                    name="start_date"
+                                    value="<?= $fDate->format('Y-m-d') ?>"
+                                    class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none"
+                                    required>
                             </div>
+
                             <div class="flex flex-col w-[45%]">
                                 <h1 class="head text-blue-950">วันสิ้นสุด</h1>
-                                <input type="date" name="end_date" value="2026-02-24" class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none" required>
+                                <input type="date"
+                                    name="end_date"
+                                    value="<?= $eDate->format('Y-m-d') ?>"
+                                    class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none"
+                                    required>
                             </div>
-                        </div>
-                        <div class="flex flex-col">
-                            <h1 class="head text-blue-950">เงื่อนไขการเข้าร่วม (ถ้ามี)</h1>
-                            <textarea name="condition" maxlength="100" class="head resize-none pl-2 ml-4 text-black mt-2 w-2/3 h-20 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500">(เงื่อนไขการเข้าร่วม)</textarea>
+
                         </div>
                     </div>
 
@@ -150,9 +164,7 @@ $page = "manage";
                         </div>
 
                         <div id="imageGrid" class="w-full grid grid-cols-2 gap-1 bg-gray-100 rounded-sm overflow-hidden border min-h-[256px]">
-                            <div class="col-span-2 flex items-center justify-center text-gray-400 head text-sm p-10 text-center">
-                                ยังไม่มีรูปภาพที่เลือก
-                            </div>
+                            <img src="/../<?php echo htmlspecialchars($selectedEvent['image_path']); ?>"  class="col-span-2 flex items-center justify-center text-gray-400 head text-sm p-10 text-center">
                         </div>
 
                         <div class="flex flex-col items-center w-full gap-2">
