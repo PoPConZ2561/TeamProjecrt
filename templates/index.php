@@ -96,8 +96,8 @@ $page = "index";
                 <?php require_once __DIR__ . '/../includes/showEvent.php'; ?>
             </div>
         </div>
-        <?php include 'footer.php' ?>
     </main>
+    <?php include 'footer.php' ?>
 </body>
 
 </html>
