@@ -80,7 +80,6 @@ if (isset($_GET['edit'])) {
             <!-- แก้ไข้ให้ข้อมูลตรงกับ data -->
             <input type="text" placeholder="ค้นหากิจกรรม..." class="option_text w-[90%] pl-2 text-lg rounded-sm h-12 mx-auto my-4">
             <div class="flex flex-col items-end overflow-y-auto w-full h-[90%] py-4 gap-2">
-<<<<<<< HEAD
                 <?php foreach ($_SESSION['myevent'] as $index => $each): ?>
                     <?php $date1 = new DateTime($each['start_date']); ?>
                     <?php $date2 = new DateTime($each['end_date']); ?>
@@ -100,9 +99,6 @@ if (isset($_GET['edit'])) {
                     </a>
 
                 <?php endforeach ?>
-=======
-                <?php print_r($_SESSION['myevent']) ?>
->>>>>>> 23ba7c4170d2be178fcd2bd0ada8dab89ce6c0f9
             </div>
         </div>
 
