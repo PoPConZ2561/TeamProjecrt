@@ -2,320 +2,345 @@
 session_start();
 $page = "manage";
 
-$selectedEvent = null;
-if (isset($_GET['edit'])) {
-    $index = $_GET['edit'];
-    $selectedEvent = $_SESSION['myevent'][$index];
+// 1. เช็คการล็อกอิน
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+require_once("../includes/database.php"); // ปรับ path ให้ตรงกับโครงสร้างของคุณ
+$conn = getConnection();
+$user_id = $_SESSION["user_id"];
+
+// ==========================================
+// 2. ดึงรายชื่อกิจกรรม "ทั้งหมด" ของผู้ใช้นี้ (เพื่อแสดงแถบซ้าย)
+// ==========================================
+$sql_my_events = "SELECT e.*, 
+                 (SELECT image_path FROM event_images WHERE event_id = e.event_id LIMIT 1) AS image_path
+                 FROM events e 
+                 WHERE e.user_id = ? 
+                 ORDER BY e.created_at DESC";
+
+$stmt = $conn->prepare($sql_my_events);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result_events = $stmt->get_result();
+
+$my_events = [];
+while ($row = $result_events->fetch_assoc()) {
+    $my_events[] = $row;
+}
+$stmt->close();
+
+// ==========================================
+// 3. กำหนดว่าจะโชว์ข้อมูลกิจกรรมไหนทางขวามือ (Selected Event)
+// ==========================================
+$selected_event_id = null;
+$selected_event = null;
+
+if (count($my_events) > 0) {
+    // ถ้ามีการส่ง ?event_id= มา (คลิกมาจากหน้าโชว์กิจกรรม หรือคลิกจากเมนูซ้ายมือ)
+    if (isset($_GET['event_id']) && !empty($_GET['event_id'])) {
+        $selected_event_id = $_GET['event_id'];
+        
+        // ค้นหาข้อมูลกิจกรรมที่ตรงกับ ID ที่ส่งมา จากใน Array
+        foreach ($my_events as $event) {
+            if ($event['event_id'] == $selected_event_id) {
+                $selected_event = $event;
+                break;
+            }
+        }
+    } 
+    
+    // ถ้าไม่มีการส่งค่ามา (มาจาก Header) หรือส่งค่ามั่วมา ให้เลือก "กิจกรรมล่าสุด (อันแรก)" อัตโนมัติ
+    if ($selected_event == null) {
+        $selected_event = $my_events[0];
+        $selected_event_id = $selected_event['event_id'];
+    }
+}
+
+// ==========================================
+// 4. ดึงรายชื่อผู้เข้าร่วม เฉพาะกิจกรรมที่ถูกเลือกอยู่
+// ==========================================
+$pending_users = [];
+$approved_users = [];
+
+if ($selected_event_id != null) {
+    $sql_participants = "SELECT u.user_id, u.name, u.email, u.phone_number, r.status 
+                         FROM registrations r
+                         JOIN users u ON r.user_id = u.user_id
+                         WHERE r.event_id = ?";
+                         
+    $stmt2 = $conn->prepare($sql_participants);
+    $stmt2->bind_param("i", $selected_event_id);
+    $stmt2->execute();
+    $res_participants = $stmt2->get_result();
+    
+    // แยกคนตามสถานะ เพื่อเอาไปวาด UI คนละกล่อง
+    while ($p = $res_participants->fetch_assoc()) {
+        if ($p['status'] == 'pending') {
+            $pending_users[] = $p;
+        } elseif ($p['status'] == 'approved') {
+            $approved_users[] = $p;
+        }
+    }
+    $stmt2->close();
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVENTLY - manage event</title>
+    <title>EVENTLY - Manage Event</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        main {
-            zoom: 0.8;
-        }
-
-        .title_text {
-            font-family: "Kanit", sans-serif;
-            font-size: 2em;
-            font-weight: bolder;
-            color: #172554;
-            line-height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        .option_header_text {
-            font-family: "Kanit", sans-serif;
-            font-size: 200;
-            font-weight: 300;
-            color: #172554;
-        }
-
-        .option_text {
-            font-family: "Kanit", sans-serif;
-            font-size: small;
-            color: #172554;
-        }
-
-        .head {
-            font-family: "Kanit", sans-serif;
-            font-size: large;
-            color: #c0c2c5;
-        }
-
-        .description {
-            font-family: "Kanit", sans-serif;
-            font-size: small;
-            font-weight: 200;
-            color: black;
-        }
-
-        .r {
-            background-color: red;
-        }
+        body { font-family: "Kanit", sans-serif; }
+        .title_text { color: #172554; }
+        .head { color: #172554; font-weight: 500;}
+        .description { font-weight: 300; }
+        /* ซ่อน Scrollbar แต่อยู่ให้เลื่อนได้ */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 
-<body class="flex flex-col h-screen w-full">
+<body class="flex flex-col h-screen w-full bg-gray-100 overflow-hidden">
+    
     <?php include 'header.php' ?>
-    <main class="flex flex-row items-center h-full w-full bg-gray-100 pt-[100px]">
-        <div class="flex flex-col w-1/5 h-full bg-blue-950">
-            <!-- แก้ไข้ให้ข้อมูลตรงกับ data -->
-            <input type="text" placeholder="ค้นหากิจกรรม..." class="option_text w-[90%] pl-2 text-lg rounded-sm h-12 mx-auto my-4">
-            <div class="flex flex-col items-end overflow-y-auto w-full h-[90%] py-4 gap-2">
-                <?php foreach ($_SESSION['myevent'] as $index => $each): ?>
-                    <?php $date1 = new DateTime($each['start_date']); ?>
-                    <?php $date2 = new DateTime($each['end_date']); ?>
-                    <a href="?edit=<?= $index ?>"
-                        class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer block">
-                        <h1 class="option_header_text">
-                            <?= $each['title'] ?>
-                        </h1>
-                        <div class="flex flex-row">
-                            <p class="description">
-                                <?= $date1->format("d/m/Y") ?> - <?= $date2->format("d/m/Y") ?>
-                            </p>
-                            <p class="description ml-auto">
-                                <?= $each['max_participants'] ?> คน
-                            </p>
-                        </div>
-                    </a>
-
-                <?php endforeach ?>
+    
+    <main class="flex flex-row h-full w-full pt-[80px]"> <!-- ปรับ pt ให้พอดีกับ Header -->
+        
+        <!-- ========================================== -->
+        <!-- ส่วนซ้าย: รายชื่อกิจกรรมของคุณ -->
+        <!-- ========================================== -->
+        <div class="flex flex-col w-1/4 max-w-[300px] h-full bg-blue-950 shadow-lg z-10">
+            <div class="p-4 border-b border-blue-900">
+                <input type="text" placeholder="ค้นหากิจกรรม..." class="w-full pl-3 text-sm rounded-md h-10 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+            
+            <div class="flex flex-col overflow-y-auto hide-scrollbar h-full py-2">
+                <?php if (count($my_events) == 0): ?>
+                    <p class="text-gray-400 text-center text-sm mt-4">คุณยังไม่มีกิจกรรม</p>
+                <?php else: ?>
+                    <?php foreach ($my_events as $event): ?>
+                        <?php 
+                            // เช็คว่าอันไหนถูกเลือกอยู่ ให้เป็นสีม่วง
+                            $is_active = ($event['event_id'] == $selected_event_id);
+                            $bg_class = $is_active ? "bg-purple-600 text-white" : "text-gray-300 hover:bg-blue-900";
+                            $text_class = $is_active ? "text-white" : "text-gray-100";
+                            $desc_class = $is_active ? "text-purple-200" : "text-gray-400";
+                        ?>
+                        <a href="?event_id=<?= $event['event_id'] ?>" 
+                           class="flex flex-col p-4 border-b border-blue-900/50 transition-colors cursor-pointer <?= $bg_class ?>">
+                            <h1 class="font-medium truncate <?= $text_class ?>">
+                                <?= htmlspecialchars($event['title']) ?>
+                            </h1>
+                            <div class="flex flex-row justify-between mt-1 text-xs <?= $desc_class ?>">
+                                <p><?= date("d/m/Y", strtotime($event['start_date'])) ?></p>
+                                <p>รับ: <?= $event['max_participants'] == 0 ? 'ไม่จำกัด' : $event['max_participants'] . ' คน' ?></p>
+                            </div>
+                        </a>
+                    <?php endforeach ?>
+                <?php endif; ?>
             </div>
         </div>
 
-        <div class="flex flex-col w-4/5 h-full px-10 py-6 gap-4 bg-gray-100 overflow-y-auto">
-            <div class="flex flex-row items-center w-full h-[60px] min-h-[60px]">
-                <h1 class="title_text">จัดการกิจกรรม</h1>
-            </div>
+        <!-- ========================================== -->
+        <!-- ส่วนขวา: รายละเอียดและการจัดการ (ฟอร์มและรายชื่อ) -->
+        <!-- ========================================== -->
+        <div class="flex flex-col w-full h-full p-6 lg:p-10 bg-gray-50 overflow-y-auto hide-scrollbar gap-6">
+            
+            <?php if ($selected_event == null): ?>
+                <!-- กรณีไม่มีกิจกรรมเลย -->
+                <div class="flex flex-col items-center justify-center w-full h-full bg-white rounded-lg shadow-sm border border-gray-100">
+                    <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <h2 class="text-2xl font-bold text-gray-400">คุณยังไม่ได้สร้างกิจกรรม</h2>
+                    <a href="create_event.php" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">สร้างกิจกรรมใหม่</a>
+                </div>
+            <?php else: ?>
+                <!-- กรณีมีกิจกรรม ให้แสดงข้อมูล -->
+                
+                <h1 class="text-3xl font-bold title_text border-b-2 pb-2">จัดการกิจกรรม: <span class="text-purple-600"><?= htmlspecialchars($selected_event['title']) ?></span></h1>
 
-            <div class="flex flex-row w-full min-h-[600px] bg-white rounded-md shadow-md p-6">
-                <form action="#" method="post" enctype="multipart/form-data" class="flex flex-row w-full h-full">
-                    <div class="flex flex-col gap-4 h-full w-[70%]">
-                        <!-- แก้ไข้ให้ข้อมูลตรงกับ data -->
-                        <div class="flex flex-row gap-2">
+                <!-- กล่อง 1: แก้ไขข้อมูลกิจกรรม -->
+                <div class="flex flex-col w-full bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                    <form action="process_update_event.php" method="post" enctype="multipart/form-data" class="flex flex-col lg:flex-row w-full gap-8">
+                        <input type="hidden" name="event_id" value="<?= $selected_event['event_id'] ?>">
+                        
+                        <!-- ฝั่งซ้ายฟอร์ม (Text) -->
+                        <div class="flex flex-col gap-4 w-full lg:w-[65%]">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="flex flex-col">
+                                    <label class="head mb-1">ชื่ออีเว้นท์</label>
+                                    <input type="text" name="title" value="<?= htmlspecialchars($selected_event['title']) ?>" class="w-full h-11 px-3 rounded-md border border-gray-300 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" required>
+                                </div>
+                                <div class="flex flex-col">
+                                    <label class="head mb-1">จำนวนสมาชิก (0 = ไม่จำกัด)</label>
+                                    <input type="number" name="max_participants" value="<?= $selected_event['max_participants'] ?>" class="w-full h-11 px-3 rounded-md border border-gray-300 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" required>
+                                </div>
+                            </div>
+
                             <div class="flex flex-col">
-                                <h1 class="head text-blue-950">ชื่ออีเว้นท์</h1>
-                                <input type="text" name="title" value="<?= $selectedEvent['title'] ?? '' ?>" class="head pl-2 ml-4 text-black mt-2 w-full h-10 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>
+                                <label class="head mb-1">สถานที่</label>
+                                <input type="text" name="location" value="<?= htmlspecialchars($selected_event['location']) ?>" class="w-full h-11 px-3 rounded-md border border-gray-300 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" required>
                             </div>
+                            
                             <div class="flex flex-col">
-                                <h1 class="head text-blue-950">จำนวนสมาชิก</h1>
-                                <input type="number" name="max_participants" inputmode="numeric" placeholder="<?= $selectedEvent['max_participants'] ?>"
-                                    class="head pl-2 ml-4 text-black mt-2 w-1/2 h-10 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>
+                                <label class="head mb-1">รายละเอียด</label>
+                                <textarea name="description" rows="3" class="w-full p-3 resize-none rounded-md border border-gray-300 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" required><?= htmlspecialchars($selected_event['description']) ?></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <?php 
+                                    $fDate = date('Y-m-d', strtotime($selected_event['start_date']));
+                                    $eDate = date('Y-m-d', strtotime($selected_event['end_date']));
+                                ?>
+                                <div class="flex flex-col">
+                                    <label class="head mb-1">วันเริ่มต้น</label>
+                                    <input type="date" name="start_date" value="<?= $fDate ?>" class="w-full h-11 px-3 rounded-md border border-gray-300 focus:outline-none focus:border-purple-500" required>
+                                </div>
+                                <div class="flex flex-col">
+                                    <label class="head mb-1">วันสิ้นสุด</label>
+                                    <input type="date" name="end_date" value="<?= $eDate ?>" class="w-full h-11 px-3 rounded-md border border-gray-300 focus:outline-none focus:border-purple-500" required>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex flex-col">
-                            <h1 class="head text-blue-950">สถานที่</h1>
-                            <textarea name="location" maxlength="220" class="head resize-none pl-2 ml-4 text-black mt-2 w-2/3 h-20 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required><?= $selectedEvent['location'] ?></textarea>
-                        </div>
-                        <div class="flex flex-col">
-                            <h1 class="head text-blue-950">รายละเอียด</h1>
-                            <textarea name="description" maxlength="220" class="head resize-none pl-2 ml-4 text-black mt-2 w-2/3 h-20 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required><?= $selectedEvent['description'] ?></textarea>
-                        </div>
-                        <?php $fDate = new DateTime($selectedEvent['start_date']) ?>
-                        <?php $eDate = new DateTime($selectedEvent['end_date']) ?>
-
-                        <div class="flex flex-row w-2/3 justify-between">
-
-                            <div class="flex flex-col w-[45%]">
-                                <h1 class="head text-blue-950">วันเริ่มต้น</h1>
-                                <input type="date"
-                                    name="start_date"
-                                    value="<?= $fDate->format('Y-m-d') ?>"
-                                    class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none"
-                                    required>
+                        <!-- ฝั่งขวาฟอร์ม (Image & Buttons) -->
+                        <div class="flex flex-col items-center w-full lg:w-[35%] gap-4">
+                            <label class="head self-start">รูปภาพกิจกรรม</label>
+                            
+                            <div id="imageGrid" class="w-full bg-gray-100 rounded-md overflow-hidden border border-gray-300 h-[220px] flex items-center justify-center relative group">
+                                <?php if (!empty($selected_event['image_path'])): ?>
+                                    <img src="../<?= htmlspecialchars($selected_event['image_path']) ?>" class="w-full h-full object-cover">
+                                <?php else: ?>
+                                    <span class="text-gray-400 text-sm">ไม่มีรูปภาพ</span>
+                                <?php endif; ?>
                             </div>
 
-                            <div class="flex flex-col w-[45%]">
-                                <h1 class="head text-blue-950">วันสิ้นสุด</h1>
-                                <input type="date"
-                                    name="end_date"
-                                    value="<?= $eDate->format('Y-m-d') ?>"
-                                    class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none"
-                                    required>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col items-center h-full w-[30%] gap-4">
-                        <div class="flex flex-row items-center w-full">
-                            <!-- แก้ไข้ให้ข้อมูลตรงกับ data -->
-                            <h1 class="head text-blue-950">รูปภาพกิจกรรม</h1>
-                        </div>
-
-                        <div id="imageGrid" class="w-full grid grid-cols-2 gap-1 bg-gray-100 rounded-sm overflow-hidden border min-h-[256px]">
-                            <img src="/../<?php echo htmlspecialchars($selectedEvent['image_path']); ?>"  class="col-span-2 flex items-center justify-center text-gray-400 head text-sm p-10 text-center">
-                        </div>
-
-                        <div class="flex flex-col items-center w-full gap-2">
-                            <div class="flex flex-row gap-2">
-                                <label for="fileInput" class="cursor-pointer bg-purple-600 text-white px-4 py-2 rounded-sm hover:bg-purple-700 transition shadow-sm text-center min-w-[100px]">
-                                    <span class="head text-white text-sm">เลือกรูปภาพ</span>
+                            <div class="flex flex-row gap-2 w-full mt-2">
+                                <label for="fileInput" class="cursor-pointer bg-purple-600 text-white flex-1 py-2 rounded-md hover:bg-purple-700 transition text-center text-sm font-medium">
+                                    เปลี่ยนรูปภาพ
                                 </label>
-                                <button type="button" onclick="clearImages()" class="bg-gray-500 text-white px-4 py-2 rounded-sm hover:bg-gray-600 transition shadow-sm text-center min-w-[100px]">
-                                    <span class="head text-white text-sm">ลบรูปภาพทั้งหมด</span>
+                                <input type="file" id="fileInput" name="pictures[]" class="hidden" multiple accept="image/*" onchange="previewImages(this)">
+                            </div>
+                            <div id="fileCount" class="text-[11px] text-gray-500 text-center w-full">สามารถเลือกรูปใหม่เพื่อทับรูปเดิมได้</div>
+
+                            <div class="flex flex-row w-full gap-3 mt-auto pt-4">
+                                <button type="reset" class="w-1/2 bg-gray-200 text-gray-700 font-medium py-3 rounded-md hover:bg-gray-300 transition">
+                                    ยกเลิก
                                 </button>
-                            </div>
-                            <input type="file" id="fileInput" name="pictures[]" class="hidden" multiple accept="image/*" onchange="previewImages(this)">
-                            <div id="fileCount" class="head text-[10px] text-gray-400 mt-1">ยังไม่ได้เลือกไฟล์</div>
-                        </div>
-
-                        <div class="flex flex-row items-center w-full h-[20px] gap-2 mt-auto">
-                            <button type="reset" class="w-full bg-gray-400 text-white font-bold py-3 rounded-sm hover:bg-blue-900">
-                                <span class="head text-white">ยกเลิก</span>
-                            </button>
-                            <button type="submit" class="w-full bg-blue-950 text-white font-bold py-3 rounded-sm hover:bg-blue-900">
-                                <span class="head text-white">บันทึกการแก้ไข</span>
-                            </button>
-                        </div>
-
-                    </div>
-                </form>
-            </div>
-            <div class="flex flex-col w-full min-h-[600px] bg-white shadow-md p-6 gap-2">
-                <div class="flex flex-row items-center w-full h-[10%] border-b-2">
-                    <h1 class="title_text">คำขอเข้าร่วม</h1>
-                </div>
-                <div class="flex flex-col w-full h-[20%] border-b-2 gap-2">
-                    <h1 class="title_text text-[30px] font-medium">Title</h1>
-                    <p class="option_header_text text-gray-400">12/1/68 - 14/1/68</p>
-                </div>
-                <div class="flex flex-col w-full h-[70%] gap-2 p-2 overflow-y-auto border-2 rounded-sm">
-                    <!-- แก้ไข้ให้ข้อมูลตรงกับ data ไปทำให้ปุ่มมันใช้ได้ด้วย -->
-                    <div class="flex flex-row w-full h-[80px] min-h-[80px] border-b-2">
-                        <div class="flex flex-row items-center pl-4 w-[70%] h-full">
-                            <a href="profile.php" class="shrink-0">
-                                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAM1BMVEXk5ueutLfn6eqrsbTp6+zg4uOwtrnJzc/j5earsbW0uby4vcDQ09XGyszU19jd3+G/xMamCvwDAAAFLklEQVR4nO2d2bLbIAxAbYE3sDH//7WFbPfexG4MiCAcnWmnrzkjIRaD2jQMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMw5wQkHJczewxZh2lhNK/CBOQo1n0JIT74/H/qMV0Z7GU3aCcVPuEE1XDCtVLAhgtpme7H0s1N1U7QjO0L8F7llzGeh1hEG/8Lo7TUmmuSrOfns9xnGXpXxsONPpA/B6OqqstjC6Ax/0ujkNdYQQbKNi2k64qiiEZ+ohi35X+2YcZw/WujmslYewiAliVYrxgJYrdwUmwXsU+RdApUi83oNIE27YvrfB/ZPg8+BJETXnqh9CVzBbTQHgojgiCvtqU9thFJg/CKz3VIMKMEkIXxIWqIpIg2SkjYj+xC816mrJae2aiWGykxRNsW0UwiJghJDljYI5CD8GRiCtIsJxizYUPQ2pzItZy5pcisTRdk/a9m4amtNNfBuQkdVhSaYqfpNTSFGfb9GRIakrE2Pm+GFLaCQPqiu0OpWP+HMPQQcgQMiQprWXNmsVwIjQjYi/ZrhAqNTCgr2gu0Jnz85RSSjso0HkMFZ0YZjKkc26a/jlmh9JiDyDxi9oeorTYAzZkwwoMz19pzj9bnH/GP/+qbchjSGflneWYhtTuKdMOmNKZcJ5TjInQKcYXnESd/jQxy0ENpULTNGOGgxpap/oyw9pbUAqhfx2Dbkhovvfgz4iUzoM9+GlK6/Mh4q29hyC1mwro30hpVVLPF9wYQr71RazOeM5/cw81iBRD+A03aM9/C/obbrKjbYSpCmIVG3qT/Q8oeUo3Rz0IL7vI1tEbCB9pSiu8I/aV8x3Kg/BGWrWp4ZVs0nZfmAoEG4h/61yHYIJiFSl6Q0Vk6tTW1N8kYp8hdOkfHYYMXd2Qft+8CYwqYDSKvqIh+MCF8Wgca2u/cwdgeW3TtuVn6+1oBs3yLo5C2JpK6CvQzGpfUkz9UG/87gCsi5o2LIXolxN0FbwAsjOLEr+YJmXn7iR6N0BCt5p5cMxm7eAsfS+/CACQf4CTpKjzgkvr2cVarVTf96372yut7XLJ1sa7lv6VcfgYrWaxqr3Wlo1S6pvStr22sxOtTNPLzdY3nj20bPP+ejFdJYkLsjGLdtPBEbe/mr2bQKiXWJDroA+vtzc0p9aahuwqHMDYrQEXHEw9jwQl3drMpts9JBU1SdktPe5FBRdJQ6bwXBpa57ib2A8kukQDzMjh++Uo7Fo6Wd02Pkf4fknqoo4HtvAIjsqUcjx6DIPgWCaOML9rKI/oqD9/lgNrn+eF+p7j8tnzHBiR7+kdUGw/+V1Kzkc75mMy6U+FMaxjPibiM1U1uGM+puInHpmALZCgP4pt7i840MV8+0R1zPsRB6UTcqpizncYwZ89syDydfyWCwXB1l8/zRNGWbTG/GHKUm9AkxHMc/EGSk3z2+ArEhPEV5TUBLEvUGFcjEUH80J/jveTGOAJEljJbILWGQT3zRYiwuKsUXN1EEJAzBhRJFll7mBUG7KD8EqPkKekBREaL8hMDZLQSG6AQjtHPYmvTQnX0TtpC1SYCe2YdkkyLP3jj5BSbKiuR585eQhTgoje6yIb0Yb0C+mV6EYvebqw5SDy2WmubogZiF2AVxPC2FpDf8H2Q9QWo6IkjUxTWVEI3WY/wrCeSuqJ+eRWzXR/JXwgVjUMozbCOfoEZiSiKVGepqv5CJ8RyR4D7xBeamqa7z3BJ/z17JxuBPdv93d/a2Ki878MMAzDMAzDMAzDMAzDMF/KP09VUmxBAiI3AAAAAElFTkSuQmCC"
-                                    class="block w-14 h-14 object-cover rounded-[50%]">
-                            </a>
-
-                            <div class="flex flex-col p-2 h-full w-full">
-                                <h2 class="description text-[20px] font-normal">name</h2>
-                                <h2 class="description font-thin">email</h2>
-                            </div>
-                        </div>
-                        <div class="flex flex-row justify-end items-center w-[30%] h-full gap-2">
-                            <button onclick="" class="head w-1/3 bg-red-400 text-white font-bold rounded-sm shadow-md py-3 rounded-sm hover:bg-red-500">ปฏิเสธ</button>
-                            <button onclick="" class="head w-1/3 bg-green-400 text-white font-bold rounded-sm shadow-md py-3 rounded-sm hover:bg-green-500">อนุญาต</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="flex flex-col w-full min-h-[600px] bg-white shadow-md p-6 gap-2">
-                <div class="flex flex-row items-center w-full h-[10%] border-b-2">
-                    <h1 class="title_text">สมาชิกทั้งหมด</h1>
-                </div>
-                <div class="flex flex-col w-full h-full border-2 rounded-md">
-                    <div class="grid grid-cols-[90px_1fr_1fr_1fr_90px] grid-rows-1 w-full px-2 h-[10%] bg-gray-100 gap-2">
-                        <h1 class="option_text text-[15px] my-auto border-r-2 ">รูปโปรไฟล์</h1>
-                        <h1 class="option_text text-[15px] my-auto border-r-2 ">ชื่อ</h1>
-                        <h1 class="option_text text-[15px] my-auto border-r-2 ">อีเมล</h1>
-                        <h1 class="option_text text-[15px] my-auto border-r-2 ">เบอร์โทรศัพท์</h1>
-                        <h1 class="option_text text-[15px] my-auto ">ลบ</h1>
-                    </div>
-                    <div class="flex flex-col w-full h-full overflow-y-auto">
-                        <div class="grid grid-cols-[90px_1fr_1fr_1fr_90px] grid-rows-1 w-full px-2 h-[70px] min-h-[70px] border-b-2 gap-2">
-                            <!-- แก้ไข้ให้ข้อมูลตรงกับ data ไปทำให้ปุ่มมันใช้ได้ด้วย -->
-                            <div class="flex flex-row items-center p-2 h-full border-r-2">
-                                <a href="profile.php" class="shrink-0">
-                                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAM1BMVEXk5ueutLfn6eqrsbTp6+zg4uOwtrnJzc/j5earsbW0uby4vcDQ09XGyszU19jd3+G/xMamCvwDAAAFLklEQVR4nO2d2bLbIAxAbYE3sDH//7WFbPfexG4MiCAcnWmnrzkjIRaD2jQMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMwzAMw5wQkHJczewxZh2lhNK/CBOQo1n0JIT74/H/qMV0Z7GU3aCcVPuEE1XDCtVLAhgtpme7H0s1N1U7QjO0L8F7llzGeh1hEG/8Lo7TUmmuSrOfns9xnGXpXxsONPpA/B6OqqstjC6Ax/0ujkNdYQQbKNi2k64qiiEZ+ohi35X+2YcZw/WujmslYewiAliVYrxgJYrdwUmwXsU+RdApUi83oNIE27YvrfB/ZPg8+BJETXnqh9CVzBbTQHgojgiCvtqU9thFJg/CKz3VIMKMEkIXxIWqIpIg2SkjYj+xC816mrJae2aiWGykxRNsW0UwiJghJDljYI5CD8GRiCtIsJxizYUPQ2pzItZy5pcisTRdk/a9m4amtNNfBuQkdVhSaYqfpNTSFGfb9GRIakrE2Pm+GFLaCQPqiu0OpWP+HMPQQcgQMiQprWXNmsVwIjQjYi/ZrhAqNTCgr2gu0Jnz85RSSjso0HkMFZ0YZjKkc26a/jlmh9JiDyDxi9oeorTYAzZkwwoMz19pzj9bnH/GP/+qbchjSGflneWYhtTuKdMOmNKZcJ5TjInQKcYXnESd/jQxy0ENpULTNGOGgxpap/oyw9pbUAqhfx2Dbkhovvfgz4iUzoM9+GlK6/Mh4q29hyC1mwro30hpVVLPF9wYQr71RazOeM5/cw81iBRD+A03aM9/C/obbrKjbYSpCmIVG3qT/Q8oeUo3Rz0IL7vI1tEbCB9pSiu8I/aV8x3Kg/BGWrWp4ZVs0nZfmAoEG4h/61yHYIJiFSl6Q0Vk6tTW1N8kYp8hdOkfHYYMXd2Qft+8CYwqYDSKvqIh+MCF8Wgca2u/cwdgeW3TtuVn6+1oBs3yLo5C2JpK6CvQzGpfUkz9UG/87gCsi5o2LIXolxN0FbwAsjOLEr+YJmXn7iR6N0BCt5p5cMxm7eAsfS+/CACQf4CTpKjzgkvr2cVarVTf96372yut7XLJ1sa7lv6VcfgYrWaxqr3Wlo1S6pvStr22sxOtTNPLzdY3nj20bPP+ejFdJYkLsjGLdtPBEbe/mr2bQKiXWJDroA+vtzc0p9aahuwqHMDYrQEXHEw9jwQl3drMpts9JBU1SdktPe5FBRdJQ6bwXBpa57ib2A8kukQDzMjh++Uo7Fo6Wd02Pkf4fknqoo4HtvAIjsqUcjx6DIPgWCaOML9rKI/oqD9/lgNrn+eF+p7j8tnzHBiR7+kdUGw/+V1Kzkc75mMy6U+FMaxjPibiM1U1uGM+puInHpmALZCgP4pt7i840MV8+0R1zPsRB6UTcqpizncYwZ89syDydfyWCwXB1l8/zRNGWbTG/GHKUm9AkxHMc/EGSk3z2+ArEhPEV5TUBLEvUGFcjEUH80J/jveTGOAJEljJbILWGQT3zRYiwuKsUXN1EEJAzBhRJFll7mBUG7KD8EqPkKekBREaL8hMDZLQSG6AQjtHPYmvTQnX0TtpC1SYCe2YdkkyLP3jj5BSbKiuR585eQhTgoje6yIb0Yb0C+mV6EYvebqw5SDy2WmubogZiF2AVxPC2FpDf8H2Q9QWo6IkjUxTWVEI3WY/wrCeSuqJ+eRWzXR/JXwgVjUMozbCOfoEZiSiKVGepqv5CJ8RyR4D7xBeamqa7z3BJ/z17JxuBPdv93d/a2Ki878MMAzDMAzDMAzDMAzDMF/KP09VUmxBAiI3AAAAAElFTkSuQmCC"
-                                        class="w-12 h-12 object-cover rounded-[50%] ">
-                                </a>
-
-                            </div>
-                            <div class="flex flex-col justify-center p-2 h-full border-r-2">
-                                <h1 class="option_text text-lg">name</h1>
-                            </div>
-                            <div class="flex flex-col justify-center p-2 h-full border-r-2">
-                                <h1 class="option_text text-lg">email</h1>
-                            </div>
-                            <div class="flex flex-col justify-center p-2 h-full border-r-2">
-                                <h1 class="option_text text-lg">XXX-XXX-XXXX</h1>
-                            </div>
-                            <div class="flex flex-col justify-center p-2 h-full">
-                                <button class="flex flex-row items-center justify-center w-14 h-10 rounded-md bg-red-400 text-white">
-                                    ลบ
+                                <button type="submit" class="w-1/2 bg-blue-900 text-white font-medium py-3 rounded-md hover:bg-blue-950 transition shadow-md">
+                                    บันทึกแก้ไข
                                 </button>
                             </div>
                         </div>
+                    </form>
+                </div>
+
+                <!-- กล่อง 2: คำขอเข้าร่วม (รอดำเนินการ) -->
+                <div class="flex flex-col w-full bg-white rounded-lg shadow-sm border border-gray-100 p-6 gap-4">
+                    <div class="flex flex-row items-center justify-between border-b pb-2">
+                        <h1 class="text-2xl font-bold title_text">คำขอเข้าร่วม <span class="bg-yellow-100 text-yellow-700 text-sm px-3 py-1 rounded-full ml-2"><?= count($pending_users) ?> รายการ</span></h1>
+                    </div>
+                    
+                    <div class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-2 hide-scrollbar">
+                        <?php if (count($pending_users) == 0): ?>
+                            <p class="text-gray-400 text-center py-6">ไม่มีคำขอเข้าร่วมใหม่</p>
+                        <?php else: ?>
+                            <?php foreach ($pending_users as $user): ?>
+                                <div class="flex flex-row items-center justify-between p-3 border rounded-lg bg-gray-50 hover:bg-gray-100 transition">
+                                    <div class="flex flex-row items-center gap-4">
+                                        <div class="w-12 h-12 bg-blue-200 text-blue-800 rounded-full flex items-center justify-center font-bold text-xl uppercase">
+                                            <?= mb_substr($user['name'], 0, 1, 'UTF-8') ?>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <h2 class="font-medium text-lg text-gray-800"><?= htmlspecialchars($user['name']) ?></h2>
+                                            <p class="text-sm text-gray-500"><?= htmlspecialchars($user['email']) ?> | 📞 <?= htmlspecialchars($user['phone_number']) ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-row gap-2">
+                                        <!-- ปุ่ม อนุมัติ / ปฏิเสธ (สร้างลิงก์ชี้ไปหน้าประมวลผล) -->
+                                        <a href="process_registration.php?action=reject&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-500 hover:text-white px-4 py-2 rounded-md transition font-medium text-sm">ปฏิเสธ</a>
+                                        <a href="process_registration.php?action=approve&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md transition font-medium text-sm shadow-sm">อนุมัติ</a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
-            </div>
+
+                <!-- กล่อง 3: สมาชิกที่อนุมัติแล้ว -->
+                <div class="flex flex-col w-full bg-white rounded-lg shadow-sm border border-gray-100 p-6 gap-4">
+                    <div class="flex flex-row items-center justify-between border-b pb-2">
+                        <h1 class="text-2xl font-bold title_text">สมาชิกที่เข้าร่วมแล้ว <span class="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full ml-2"><?= count($approved_users) ?>/<?= $selected_event['max_participants'] == 0 ? '∞' : $selected_event['max_participants'] ?></span></h1>
+                    </div>
+                    
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700 text-sm border-b">
+                                    <th class="p-3 font-medium w-16 text-center">รูป</th>
+                                    <th class="p-3 font-medium">ชื่อ-นามสกุล</th>
+                                    <th class="p-3 font-medium">อีเมล</th>
+                                    <th class="p-3 font-medium">เบอร์โทรศัพท์</th>
+                                    <th class="p-3 font-medium text-center w-24">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (count($approved_users) == 0): ?>
+                                    <tr>
+                                        <td colspan="5" class="p-6 text-center text-gray-400">ยังไม่มีสมาชิกที่อนุมัติแล้ว</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($approved_users as $user): ?>
+                                        <tr class="border-b hover:bg-gray-50 transition text-sm">
+                                            <td class="p-3 text-center">
+                                                <div class="w-10 h-10 mx-auto bg-purple-200 text-purple-800 rounded-full flex items-center justify-center font-bold">
+                                                    <?= mb_substr($user['name'], 0, 1, 'UTF-8') ?>
+                                                </div>
+                                            </td>
+                                            <td class="p-3 font-medium text-gray-800"><?= htmlspecialchars($user['name']) ?></td>
+                                            <td class="p-3 text-gray-600"><?= htmlspecialchars($user['email']) ?></td>
+                                            <td class="p-3 text-gray-600"><?= htmlspecialchars($user['phone_number']) ?></td>
+                                            <td class="p-3 text-center">
+                                                <a href="process_registration.php?action=remove&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition" onclick="return confirm('แน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้ออกจากกิจกรรม?');">ลบ</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            <?php endif; ?>
         </div>
     </main>
 
     <script>
-        function clearImages() {
-            const fileInput = document.getElementById('fileInput');
-            const grid = document.getElementById('imageGrid');
-            const fileCount = document.getElementById('fileCount');
-
-            fileInput.value = "";
-            grid.innerHTML = '<div class="col-span-2 flex items-center justify-center text-gray-400 head text-sm p-10 text-center">ยังไม่มีรูปภาพที่เลือก</div>';
-            fileCount.textContent = "ยังไม่ได้เลือกไฟล์";
-        }
-
         function previewImages(input) {
             const grid = document.getElementById('imageGrid');
             const fileCount = document.getElementById('fileCount');
-            grid.innerHTML = '';
-
+            
             if (input.files && input.files.length > 0) {
-                const files = Array.from(input.files);
-                const count = files.length;
-                fileCount.textContent = `เลือกแล้ว ${count} รูป`;
+                grid.innerHTML = '';
+                const file = input.files[0]; // พรีวิวรูปแรกที่เลือก
+                fileCount.textContent = `เลือกรูปภาพใหม่แล้ว`;
 
-                files.forEach((file, index) => {
-                    if (index > 3) return; // แสดงพรีวิวสูงสุด 4 รูปแบบ
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const div = document.createElement('div');
-                        div.className = 'relative h-32 w-full bg-gray-300';
-
-                        if (count === 1) {
-                            div.className = 'col-span-2 h-64';
-                        } else if (count === 2) {
-                            div.className = 'col-span-1 h-64';
-                        } else if (count === 3 && index === 0) {
-                            div.className = 'col-span-2 h-40';
-                        } else if (count >= 4 && index === 3 && count > 4) {
-                            div.innerHTML = `<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-xl">+${count - 3}</div>`;
-                        }
-
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'object-cover w-full h-full';
-                        div.prepend(img);
-                        grid.appendChild(div);
-                    }
-                    reader.readAsDataURL(file);
-                });
-            } else {
-                clearImages();
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'object-cover w-full h-full';
+                    grid.appendChild(img);
+                }
+                reader.readAsDataURL(file);
             }
         }
     </script>
 </body>
-
 </html>
