@@ -72,31 +72,45 @@ $page = 'profile';
                     class="w-24 h-24 object-cover rounded-[50%] border-white border-4 mt-10">
             </div>
             <div class="w-full h-[66%] flex flex-col items-center pt-12">
-                <h1 class="title_text">name</h1>
-                <p class="option_text text-gray-400">XXX@msu.ac.th</p>
+                <h1 class="title_text">
+                    <?php echo $_SESSION["username"] ?>
+                </h1>
+                <p class="option_text text-gray-400">
+                    <?php echo $_SESSION["email"] ?>
+                </p>
             </div>
         </div>
         <div class="flex flex-col w-[30%] h-[80%] bg-white shadow-md">
             <div class="grid grid-cols-2 grid-rows-3 w-full h-1/2">
                 <div class="flex flex-col p-2 border-b border-r">
                     <h1 class="option_header_text">ชื่อ</h1>
-                    <p class="option_text">name</p>
+                    <p class="option_text">
+                        <?php echo $_SESSION["username"] ?>
+                    </p>
                 </div>
                 <div class="flex flex-col p-2 border-b border-r">
                     <h1 class="option_header_text">วันเกิด</h1>
-                    <p class="option_text">birth date</p>
+                    <p class="option_text">
+                        <?php echo $_SESSION["birthdate"] ?>
+                    </p>
                 </div>
                 <div class="flex flex-col p-2 border-b border-r">
                     <h1 class="option_header_text">อีเมล</h1>
-                    <p class="option_text">XXX@msu.ac.th</p>
+                    <p class="option_text">
+                        <?php echo $_SESSION["email"] ?>
+                    </p>
                 </div>
                 <div class="flex flex-col p-2 border-b border-r">
                     <h1 class="option_header_text">เบอร์โทรศัพท์</h1>
-                    <p class="option_text">XXX-XXX-XXXX</p>
+                    <p class="option_text">
+                        <?php echo $_SESSION["phone_number"] ?>
+                    </p>
                 </div>
                 <div class="flex flex-col p-2 border-b border-r">
                     <h1 class="option_header_text">เพศ</h1>
-                    <p class="option_text">gender</p>
+                    <p class="option_text">
+                        <?php echo $_SESSION["gender"] ?>
+                    </p>
                 </div>
             </div>
         </div>

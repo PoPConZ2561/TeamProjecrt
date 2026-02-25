@@ -114,7 +114,7 @@ $page = "manage";
                             </div>
                             <div class="flex flex-col">
                                 <h1 class="head text-blue-950">จำนวนสมาชิก</h1>
-                                <input type="number" name="amount" inputmode="numeric" placeholder="(100)"
+                                <input type="number" name="max_participants" inputmode="numeric" placeholder="(100)"
                                     class="head pl-2 ml-4 text-black mt-2 w-1/2 h-10 rounded-sm border focus:outline-none focus:ring-1 focus:ring-purple-500" required>
                             </div>
                         </div>
@@ -130,11 +130,11 @@ $page = "manage";
                         <div class="flex flex-row w-2/3 justify-between">
                             <div class="flex flex-col w-[45%]">
                                 <h1 class="head text-blue-950">วันเริ่มต้น</h1>
-                                <input type="date" name="start" value="2026-02-21" class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none" required>
+                                <input type="date" name="start_date" value="2026-02-21" class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none" required>
                             </div>
                             <div class="flex flex-col w-[45%]">
                                 <h1 class="head text-blue-950">วันสิ้นสุด</h1>
-                                <input type="date" name="end" value="2026-02-24" class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none" required>
+                                <input type="date" name="end_date" value="2026-02-24" class="ml-4 pl-2 w-full border rounded-sm head focus:outline-none" required>
                             </div>
                         </div>
                         <div class="flex flex-col">
