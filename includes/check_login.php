@@ -23,7 +23,7 @@ if (!isset($_POST['email']) || !isset($_POST['password'])) {
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
             $_SESSION["user_id"] = $row["user_id"];
-            $_SESSION["username"] = $row["username"];
+            $_SESSION["name"] = $row["name"];
             $_SESSION["email"] = $row["email"];
             $_SESSION["phone_number"] = $row["phone_number"];
             $_SESSION["birthdate"] = $row["birthdate"];

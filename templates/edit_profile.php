@@ -45,7 +45,7 @@ if (!isset($_SESSION['user_id'])) {
                 <!-- ชื่อ-นามสกุล -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ - นามสกุล <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" value="<?php echo htmlspecialchars($_SESSION['username']); ?>" required
+                    <input type="text" name="name" value="<?php echo htmlspecialchars($_SESSION['name']); ?>" required
                            class="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow">
                 </div>
                 

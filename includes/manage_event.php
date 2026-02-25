@@ -36,7 +36,7 @@ if (!empty($events)) {
     // สมมติว่าต้องการดูคนเข้าร่วมของกิจกรรมแรกที่ดึงมาได้
     $event_id = $events[0]['event_id']; 
 
-    $sqlUserFormEvent = "SELECT u.username, u.email, u.phone_number, r.status 
+    $sqlUserFormEvent = "SELECT u.name, u.email, u.phone_number, r.status 
             FROM registrations r
             JOIN users u ON r.user_id = u.user_id
             WHERE r.event_id = ? ";
@@ -49,7 +49,7 @@ if (!empty($events)) {
     echo "<h3>รายชื่อผู้เข้าร่วม:</h3>";
     $participants = [];
     while ($row1 = $result1->fetch_assoc()) {
-        echo $row1['username'] . " - " . $row1['email'] . "<br>";
+        echo $row1['name'] . " - " . $row1['email'] . "<br>";
         $participants = $row1;
     }
     print_r($participants);

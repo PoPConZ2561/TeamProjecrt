@@ -3,7 +3,7 @@
 session_start();
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    $usersname = $_POST['username'];
+    $name = $_POST['name'];
     $email = $_POST['email'];
     $phone_number = $POST['phone_number'];
     $birthdate = $_POST['birthdate'];
@@ -15,7 +15,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
     array_push($_SESSION['users'], [
-        'username' => $usersname,
+        'name' => $name,
         'email' => $email,
         'phone_number' => $phone_number,
         'birthdate' => $birthdate,

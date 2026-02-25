@@ -82,7 +82,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
             <div class="w-full h-[66%] flex flex-col items-center pt-12">
                 <!-- ดึงชื่อและอีเมลมาแสดง -->
-                <h1 class="title_text"><?php echo htmlspecialchars($_SESSION['username']); ?></h1>
+                <h1 class="title_text"><?php echo htmlspecialchars($_SESSION['name']); ?></h1>
                 <p class="option_text text-gray-400 mt-2"><?php echo htmlspecialchars($_SESSION['email']); ?></p>
             </div>
         </div>
@@ -93,7 +93,7 @@ if (!isset($_SESSION['user_id'])) {
 
                 <div class="flex flex-col p-4 border-b border-r">
                     <h1 class="option_header_text font-bold text-gray-500">ชื่อ - นามสกุล</h1>
-                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['username']); ?></p>
+                    <p class="option_text text-lg mt-1"><?php echo htmlspecialchars($_SESSION['name']); ?></p>
                 </div>
 
                 <div class="flex flex-col p-4 border-b">
