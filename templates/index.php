@@ -67,11 +67,11 @@ $page = "index";
         <div class="flex flex-row w-[80%] h-full pt-10">
             <div class=" w-[25%] h-[250px]">
                 <div class="flex flex-col items-center justify-center bg-white w-[20%] h-[300px] px-2 rounded-md shadow-sm fixed">
-                    <div class="flex flex-row items-center w-full pl-2 h-[30px]">
-                        <h2 class="option_header_text text-orange-400 text-2xl font-bold">ตัวคัดกรอง</h2>
-                    </div>
                     <!-- ทำให้กด enter แล้วกรองให้ทันทีด้วย -->
-                    <form action="#" method="post" class="flex flex-col mt-5 gap-2">
+                    <div class="flex flex-col mt-5 gap-2">
+                        <div class="flex flex-row items-center w-full pl-2 h-[30px]">
+                            <h2 class="option_header_text text-orange-400 text-2xl font-bold">ตัวคัดกรอง</h2>
+                        </div>
                         <div class="flex flex-col">
                             <p class="option_text">ค้นหา</p>
                             <input type="text"
@@ -83,8 +83,7 @@ $page = "index";
                         <p class="option_text">วันสิ้นสุด</p>
                         <input type="date"
                             class="text-sm text-gray-400 w-full pl-1 bg-white rounded-sm border">
-                        <input type="submit" value="ค้นหา" class="mt-2 text-white h-10 bg-green-400 rounded-md shadow-sm">
-                    </form>
+                    </div>
                 </div>
             </div>
 
