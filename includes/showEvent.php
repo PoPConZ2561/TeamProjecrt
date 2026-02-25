@@ -37,10 +37,9 @@ $result = $stmt->get_result();
             // ==========================================
             // ตรรกะเช็คสถานะปุ่ม (Logic เช็คตามเงื่อนไข 8 ข้อ)
             // ==========================================
-            $today = strtotime('today');
-            $start_date = strtotime($row["start_date"]);
-            // ตั้งค่า end_date เป็น 23:59:59 ของวันนั้น เผื่อกิจกรรมมีถึงสิ้นวัน
-            $end_date = strtotime($row["end_date"] . ' 23:59:59'); 
+            $now = time(); // ดึงเวลาปัจจุบัน (อิงตามเซิร์ฟเวอร์ ถึงระดับวินาที)
+            $start_date = strtotime($row["start_date"]); // เวลาเริ่มกิจกรรมตามฐานข้อมูล
+            $end_date = strtotime($row["end_date"]);     // เวลาสิ้นสุดกิจกรรมตามฐานข้อมูล
             
             $max_participants = $row["max_participants"];
             $current_participants = $row["current_participants"];
@@ -59,8 +58,8 @@ $result = $stmt->get_result();
                 $btn_link = "manage_event.php?event_id=" . $row['event_id']; 
                 $is_disabled = false;
             } 
-            // 4. กิจกรรมสิ้นสุดแล้ว (เลยวันที่ end_date)
-            elseif ($today > $end_date) {
+            // 4. กิจกรรมสิ้นสุดแล้ว (เวลาปัจจุบัน เลยวันที่ end_date ไปแล้ว)
+            elseif ($now > $end_date) {
                 $btn_text = "กิจกรรมสิ้นสุดแล้ว";
                 $btn_class = "bg-gray-400 text-white cursor-not-allowed";
             } 
@@ -77,19 +76,19 @@ $result = $stmt->get_result();
             // 6. เช็คสถานะการสมัครของ User คนนี้ (ผ่านแล้ว)
             elseif ($status === 'approved') {
                 // 3. ถึงวันที่เริ่มงานแล้ว และสมัครผ่านแล้ว -> เข้าร่วมกิจกรรม
-                if ($today >= $start_date) {
+                if ($now >= $start_date && $now <= $end_date) {
                     $btn_text = "เข้าร่วมกิจกรรม";
                     $btn_class = "bg-blue-600 hover:bg-blue-700 text-white shadow-sm";
                     $btn_link = "attend_event.php?event_id=" . $row['event_id']; 
                     $is_disabled = false;
                 } else {
-                    // สมัครผ่านแล้ว แต่วันนี้ยังไม่ถึงวันเริ่มงาน
+                    // สมัครผ่านแล้ว แต่วันนี้ยังไม่ถึงเวลาเริ่มงาน
                     $btn_text = "สมัครเรียบร้อยแล้ว";
                     $btn_class = "bg-green-600 text-white cursor-not-allowed";
                 }
             } 
             // 5. กิจกรรมเริ่มไปแล้ว สำหรับคนที่ไม่ได้สมัคร (หรือเพิ่งมาเห็น)
-            elseif ($today >= $start_date) {
+            elseif ($now >= $start_date) {
                 $btn_text = "กิจกรรมเริ่มแล้ว";
                 $btn_class = "bg-gray-500 text-white cursor-not-allowed";
             } 
