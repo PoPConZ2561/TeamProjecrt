@@ -74,27 +74,7 @@ $page = "manage";
             <!-- แก้ไข้ให้ข้อมูลตรงกับ data -->
             <input type="text" placeholder="ค้นหากิจกรรม..." class="option_text w-[90%] pl-2 text-lg rounded-sm h-12 mx-auto my-4">
             <div class="flex flex-col items-end overflow-y-auto w-full h-[90%] py-4 gap-2">
-                <div class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer">
-                    <h1 class="option_header_text ">Title</h1>
-                    <div class="flex flex-row">
-                        <p class="description">12/1/68 - 14/1/68</p>
-                        <p class="description ml-auto">2 คน</p>
-                    </div>
-                </div>
-                <div class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer">
-                    <h1 class="option_header_text ">Title</h1>
-                    <div class="flex flex-row">
-                        <p class="description">12/1/68 - 14/1/68</p>
-                        <p class="description ml-auto">2 คน</p>
-                    </div>
-                </div>
-                <div class="flex flex-col w-[80%] max-h-20 p-2 bg-gray-100 rounded-l-md hover:bg-purple-600 cursor-pointer">
-                    <h1 class="option_header_text ">Title</h1>
-                    <div class="flex flex-row">
-                        <p class="description">12/1/68 - 14/1/68</p>
-                        <p class="description ml-auto">2 คน</p>
-                    </div>
-                </div>
+                <?php print_r($_SESSION['myevent']) ?>
             </div>
         </div>
 

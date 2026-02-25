@@ -39,8 +39,7 @@ if (!empty($events)) {
     $sqlUserFormEvent = "SELECT u.username, u.email, u.phone_number, r.status 
             FROM registrations r
             JOIN users u ON r.user_id = u.user_id
-            WHERE r.event_id = ? 
-            AND r.status = 'approved'";
+            WHERE r.event_id = ? ";
 
     $stmt1 = $conn->prepare($sqlUserFormEvent);
     $stmt1->bind_param("i", $event_id);
@@ -48,9 +47,12 @@ if (!empty($events)) {
     $result1 = $stmt1->get_result(); // เปลี่ยนเป็น $stmt1 ให้ถูกต้อง 
 
     echo "<h3>รายชื่อผู้เข้าร่วม:</h3>";
+    $participants = [];
     while ($row1 = $result1->fetch_assoc()) {
         echo $row1['username'] . " - " . $row1['email'] . "<br>";
+        $participants = $row1;
     }
+    print_r($participants);
     $stmt1->close();
 }
 

@@ -45,14 +45,14 @@ if (!isset($_SESSION['user_id'])) {
                 <!-- ชื่อ-นามสกุล -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ - นามสกุล <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" value="<?php echo htmlspecialchars($_SESSION['name']); ?>" required
+                    <input type="text" name="name" value="<?php echo htmlspecialchars($_SESSION['username']); ?>" required
                            class="w-full border border-gray-300 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow">
                 </div>
                 
                 <!-- อีเมล (อ่านได้อย่างเดียว) -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">อีเมล <span class="text-gray-400 text-xs font-normal ml-2">(ไม่อนุญาตให้แก้ไข)</span></label>
-                    <input type="email" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" readonly
+                    <input type="email" name="email" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" readonly
                            class="w-full border border-gray-200 bg-gray-100 text-gray-500 rounded-md px-4 py-2.5 cursor-not-allowed focus:outline-none">
                 </div>
 
