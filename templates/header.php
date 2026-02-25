@@ -2,7 +2,7 @@
     <div class="flex flex-row items-center w-full h-[40%]">
         <div class="flex flex-row items-center w-1/2 h-full gap-5 px-3">
             <a href="index.php">
-                <h1 class="title_text text-blue-950 font-bold text-xl">EVENTLY</h1>
+                <h1 class="text-lg font-bold [font-family:'Kanit',sans-serif] text-blue-950 font-bold text-xl">EVENTLY</h1>
             </a>
         </div>
         <div class="flex flex-row items-center justify-end w-1/2 h-full gap-3 px-3">
