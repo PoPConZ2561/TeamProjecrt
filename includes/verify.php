@@ -2,7 +2,7 @@
 
 session_start();
 
-$verify = "pending"; // สถานะเริ่มต้น
+$isVerify = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     $otp = $_POST['otp']; // รับ OTP จากฟอร์ม
@@ -13,11 +13,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         } elseif ($otp == $_SESSION['otp_code']) {
             unset($_SESSION['otp_code']);
             unset($_SESSION['otp_expiry']);
-            $verify = "approved"; // อัปเดตสถานะเป็น approved
-            $_SESSION["verify"] = $verify;
+            $isVerifyy = true; 
+            $_SESSION["isVerify"] = $isVerify;
+
+            require("database.php");
+            $conn = getConnection();
+
+            $sql = "UPDATE registrations SET status = 'attended' WHERE user_id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $_SESSION['user_id']);
+            $stmt->execute();
+
             header('Location: /../templates/index.php');
         }
     }
 }
-
 ?>

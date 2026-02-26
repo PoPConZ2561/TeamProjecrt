@@ -22,9 +22,9 @@ require_once __DIR__ . "/../includes/verify.php";
         <button type="submit" name="button_click" class="w-full bg-indigo-500 text-white p-3 rounded-xl">ส่ง OTP</button>
     </from>
     <p class="flex items-center justify-center">
-        <?php if($verify == "approved"){
+        <?php if($isVerify == true){
             echo "ยืนยันสำเร็จ";
-        } else if($verify == "pending" && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        } else if($isVerify == false && $_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "OTP ไม่ถูกต้อง";
         } ?>
     </p>

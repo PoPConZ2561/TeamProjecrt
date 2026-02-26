@@ -16,7 +16,7 @@ $current_user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 */
 $sql = "SELECT e.*, 
         (SELECT image_path FROM event_images WHERE event_id = e.event_id LIMIT 1) AS image_path,
-        (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status = 'approved') AS current_participants,
+        (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status IN ('approved','attended')) AS current_participants,
         (SELECT status FROM registrations WHERE event_id = e.event_id AND user_id = ?) AS status
         FROM events e ORDER BY e.created_at DESC";
 
@@ -85,6 +85,11 @@ $result = $stmt->get_result();
                     $btn_class = "bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-not-allowed";
                 }
             } 
+            // 7. เช็คสถานะการสมัครของ User คนนี้ (เข้าร่วมกิจกรรมแล้ว)
+            elseif($status === 'attended') {
+                $btn_text = "เข้าร่วมกิจกรรมแล้ว";
+                $btn_class = "bg-green-100 text-green-700 border border-green-200 cursor-not-allowed";
+            }
             // 5. กิจกรรมเริ่มไปแล้ว สำหรับคนที่ไม่ได้สมัคร
             elseif ($now >= $start_date) {
                 $btn_text = "กิจกรรมกำลังดำเนินการ";
