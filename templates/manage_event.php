@@ -142,7 +142,7 @@ require_once __DIR__ . '/../routes/manage_event.php'; // ดึงข้อม�
                             
                             <div id="imageGrid" class="w-full bg-gray-100 rounded-md overflow-hidden border border-gray-300 h-[220px] flex items-center justify-center relative group">
                                 <?php if (!empty($selected_event['image_path'])): ?>
-                                    <img src="../<?= htmlspecialchars($selected_event['image_path']) ?>" class="w-full h-full object-cover">
+                                    <img src="../public/<?= htmlspecialchars($selected_event['image_path']) ?>" class="w-full h-full object-cover">
                                 <?php else: ?>
                                     <span class="text-gray-400 text-sm">ไม่มีรูปภาพ</span>
                                 <?php endif; ?>
@@ -237,7 +237,7 @@ require_once __DIR__ . '/../routes/manage_event.php'; // ดึงข้อม�
                                                 <?php if($user['status'] == 'attended'):?>
                                                     <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">เข้าร่วมแล้ว</span>
                                                 <?php else: ?>
-                                                    <a href="process_registration.php?action=remove&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition" onclick="return confirm('แน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้ออกจากกิจกรรม?');">ลบ</a>
+                                                    <a href="../includes/process_registration.php?action=remove&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition" onclick="return confirm('แน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้ออกจากกิจกรรม?');">ลบ</a>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>

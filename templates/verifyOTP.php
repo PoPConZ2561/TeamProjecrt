@@ -5,7 +5,7 @@ if(!isset($_SESSION['user_id']) && !isset($_GET['event_id'])){
     exit();
 }
 
-require_once __DIR__ . "/../includes/verify.php";
+require_once __DIR__ . "/../routes/verify.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +89,7 @@ require_once __DIR__ . "/../includes/verify.php";
                                 ยืนยัน
                             </button>
                         </form>
-                        <p>
+                        <p class="text-red-500">
                             <?php if($isVerify == true){
                                 echo "ยืนยันสำเร็จ";
                             } else if($isVerify == false && $_SERVER['REQUEST_METHOD'] === 'POST'){
@@ -98,7 +98,7 @@ require_once __DIR__ . "/../includes/verify.php";
                              ?>
                         </p>
                     </div>
-                    <a href="\..\includes\OTP.php">
+                    <a href="\..\routes\OTP.php">
                         <button class="flex flex-row mt-auto pl-4">
                             <p class="login_text underline text-blue-500">ส่งรหัสผ่านอีกครั้ง</p>
                         </button>

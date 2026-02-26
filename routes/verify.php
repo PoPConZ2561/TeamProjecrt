@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
             $isVerifyy = true; 
             $_SESSION["isVerify"] = $isVerify;
 
-            require("database.php");
+            require_once __DIR__ . "/../includes/database.php";
             $conn = getConnection();
 
             $sql = "UPDATE registrations SET status = 'attended' WHERE user_id = ? AND event_id = ?";

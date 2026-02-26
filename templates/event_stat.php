@@ -13,7 +13,7 @@ $attendance_rate = $total_approved > 0 ? round(($total_attended / $total_approve
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>สรุปสถิติ - <?= htmlspecialchars($event_title) ?></title>
+    <title>สรุปสถิติ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
     <style>

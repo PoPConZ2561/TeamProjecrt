@@ -6,7 +6,7 @@ if (!isset($_POST['email']) || !isset($_POST['password'])) {
     $email = $_POST["email"] ?? '';
     $password = $_POST["password"] ?? '';
 
-    require("database.php");
+    require_once __DIR__ . "/../includes/database.php";
     $conn = getConnection();
     $sql = "SELECT * FROM users WHERE email = '$email' AND password = '$password'";
     $result = $conn->query($sql);

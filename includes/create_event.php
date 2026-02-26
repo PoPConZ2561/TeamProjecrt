@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // ... หลัง insert event และได้ $event_id มาแล้ว ...
 
-        $uploadDir = __DIR__ . "/../uploads/"; // ใช้ __DIR__ เพื่ออ้างอิงตำแหน่งปัจจุบันของไฟล์ PHP
+        $uploadDir = __DIR__ . "/../public/uploads/"; // ใช้ __DIR__ เพื่ออ้างอิงตำแหน่งปัจจุบันของไฟล์ PHP
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // 2. จัดการเรื่อง Folder
-        $uploadDir = "uploads/";
+        $uploadDir = "/../public/uploads/";
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true); // สร้าง folder ถ้ายังไม่มี
         }

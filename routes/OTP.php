@@ -4,9 +4,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 // 1. โหลดไฟล์ PHPMailer (หากใช้ Composer ให้ใช้ require 'vendor/autoload.php')
-require __DIR__ . '/../public/Exception.php';
-require __DIR__ . '/../public/PHPMailer.php';
-require __DIR__ . '/../public/SMTP.php';
+require __DIR__ . '/../includes/phpmailer/Exception.php';
+require __DIR__ . '/../includes/phpmailer/PHPMailer.php';
+require __DIR__ . '/../includes/phpmailer/SMTP.php';
 
 session_start();
 

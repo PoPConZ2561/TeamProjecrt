@@ -40,7 +40,7 @@
 
             <div class="w-[1px] h-[40%] bg-gray-300 mx-1 hidden sm:block"></div>
 
-            <a href="../includes/logout.php" onclick="return confirm('คุณต้องการออกจากระบบใช่หรือไม่?')"
+            <a href="../routes/logout.php" onclick="return confirm('คุณต้องการออกจากระบบใช่หรือไม่?')"
                class="px-3 py-2 text-sm font-medium text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors">
                 ออกจากระบบ
             </a>

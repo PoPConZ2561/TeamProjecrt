@@ -112,7 +112,7 @@ $page = "index";
 
                 <div id="events-container">
                     <!-- โหลดข้อมูลครั้งแรกด้วย PHP ปกติ -->
-                    <?php require_once __DIR__ . '/../includes/showEvent.php'; ?>
+                    <?php require_once __DIR__ . '/../routes/show_event.php'; ?>
                 </div>
             </div>
         </div>
@@ -157,7 +157,7 @@ $page = "index";
                 }
 
                 // เพิ่ม ownership เข้าไปใน URL Parameter ด้วย
-                const url = `../includes/showEvent.php?search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&sort_by=${encodeURIComponent(sortBy)}&ownership=${encodeURIComponent(ownership)}`;
+                const url = `../routes/show_event.php?search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&sort_by=${encodeURIComponent(sortBy)}&ownership=${encodeURIComponent(ownership)}`;
 
                 fetch(url)
                     .then(response => response.text())
