@@ -9,13 +9,14 @@ $conn = getConnection();
 
 $current_user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 
-// รับค่าจาก AJAX / GET
+// รับค่าจาก AJAX / GET (รับค่าค้นหา, วันที่, และการเรียงลำดับ)
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
+$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'latest'; // รับค่าการจัดเรียง
 
 // ---------------------------------------------
-// สร้าง Dynamic SQL Query สำหรับค้นหา
+// สร้าง Dynamic SQL Query
 // ---------------------------------------------
 $sql = "SELECT e.*, 
         (SELECT image_path FROM event_images WHERE event_id = e.event_id LIMIT 1) AS image_path,
@@ -27,32 +28,58 @@ $conditions = [];
 $params = [$current_user_id];
 $types = "i";
 
-// ถ้ามีคำค้นหา
+// 1. ถ้ามีคำค้นหา (ค้นหาจากชื่อ, รายละเอียด, และสถานที่)
 if (!empty($search)) {
-    $conditions[] = "(e.title LIKE ? OR e.description LIKE ?)";
+    $conditions[] = "(e.title LIKE ? OR e.description LIKE ? OR e.location LIKE ?)";
     $search_param = "%" . $search . "%";
-    array_push($params, $search_param, $search_param);
-    $types .= "ss";
+    array_push($params, $search_param, $search_param, $search_param);
+    $types .= "sss";
 }
-// ถ้ามีวันเริ่มต้น
+// 2. ถ้ามีวันเริ่มต้น
 if (!empty($start_date)) {
     $conditions[] = "e.start_date >= ?";
     $params[] = $start_date . " 00:00:00";
     $types .= "s";
 }
-// ถ้ามีวันสิ้นสุด
+// 3. ถ้ามีวันสิ้นสุด
 if (!empty($end_date)) {
     $conditions[] = "e.end_date <= ?";
     $params[] = $end_date . " 23:59:59";
     $types .= "s";
 }
 
-// เอาเงื่อนไขมารวมกัน
+// เอาเงื่อนไข WHERE มารวมกัน
 if (count($conditions) > 0) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
-$sql .= " ORDER BY e.created_at DESC";
+// ---------------------------------------------
+// จัดการเงื่อนไขการเรียงลำดับ (ORDER BY)
+// ---------------------------------------------
+if ($sort_by === 'registered_first') {
+    // ดันคนที่ลงทะเบียนแล้ว (pending, approved, attended) ขึ้นบนสุด
+    $sql .= " ORDER BY CASE WHEN status IN ('pending', 'approved', 'attended') THEN 1 ELSE 2 END ASC, e.created_at DESC";
+
+} elseif ($sort_by === 'upcoming_first') {
+    // วันที่จัดงานใกล้ถึงที่สุด
+    $sql .= " ORDER BY e.start_date ASC";
+
+} elseif ($sort_by === 'popular') {
+    // ยอดฮิต: เรียงตามจำนวนคนเข้าร่วมจากมากไปน้อย
+    $sql .= " ORDER BY current_participants DESC, e.created_at DESC";
+
+} elseif ($sort_by === 'seats_available') {
+    // ที่นั่งเหลือเยอะสุด (ถ้ารับไม่จำกัด e.max_participants=0 ให้อยู่บนสุด)
+    $sql .= " ORDER BY CASE WHEN e.max_participants = 0 THEN 999999 ELSE (e.max_participants - current_participants) END DESC";
+
+} elseif ($sort_by === 'title_asc') {
+    // เรียงตามตัวอักษร
+    $sql .= " ORDER BY e.title ASC";
+
+} else {
+    // latest (ค่าเริ่มต้น): สร้างใหม่ล่าสุด
+    $sql .= " ORDER BY e.created_at DESC";
+}
 
 $stmt = $conn->prepare($sql);
 if (!empty($params)) {
@@ -62,14 +89,17 @@ $stmt->execute();
 $result = $stmt->get_result();
 ?>
 
+<!-- ========================================== -->
+<!-- ส่วนแสดงผล HTML -->
+<!-- ========================================== -->
 <?php if ($result && $result->num_rows > 0): ?>
     <div class="flex flex-col gap-6 w-full pb-10">
     <?php while ($row = $result->fetch_assoc()) : ?>
         
         <?php
-            // ตรรกะเช็คสถานะปุ่ม (เหมือนเดิมทั้งหมด)
+            // ตรรกะเช็คสถานะปุ่ม
             $now = time(); 
-            $start_date_ts = strtotime($row["start_date"]); // เปลี่ยนชื่อตัวแปรกันชนกับ $start_date ด้านบน
+            $start_date_ts = strtotime($row["start_date"]); 
             $end_date_ts = strtotime($row["end_date"]);  
             
             $max_participants = $row["max_participants"];
@@ -100,7 +130,7 @@ $result = $stmt->get_result();
                 if ($now >= $start_date_ts && $now <= $end_date_ts) {
                     $btn_text = "เข้าร่วมกิจกรรม";
                     $btn_class = "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:-translate-y-0.5";
-                    $btn_link = "..\includes\OTP.php?event_id=" . $row['event_id']; 
+                    $btn_link = "../includes/OTP.php?event_id=" . $row['event_id']; // แก้ไข slash ให้ถูกต้อง
                     $is_disabled = false;
                 } else {
                     $btn_text = "สมัครเรียบร้อยแล้ว";
@@ -129,15 +159,19 @@ $result = $stmt->get_result();
         ?>
 
         <div class="group flex flex-col md:flex-row w-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+            <!-- รูปภาพ -->
             <div class="relative w-full md:w-[40%] h-[200px] md:h-auto overflow-hidden bg-gray-100 shrink-0">
                 <?php if (!empty($row['image_path'])): ?>
                     <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         src="../<?php echo htmlspecialchars($row['image_path']); ?>" alt="Event Image">
                 <?php else: ?>
-                    <div class="w-full h-full flex items-center justify-center bg-gray-100">...</div>
+                    <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
                 <?php endif; ?>
             </div>
 
+            <!-- ข้อมูลกิจกรรม -->
             <div class="flex flex-col flex-grow p-6 lg:p-8">
                 
                 <div class="flex items-center justify-between mb-2">
@@ -145,33 +179,32 @@ $result = $stmt->get_result();
                         กิจกรรม
                     </span>
                     <div class="flex items-center text-sm text-gray-500 gap-1.5 font-medium">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         <span>ผู้เข้าร่วม: <?php echo $current_participants; ?> / <?php echo $max_participants > 0 ? $max_participants : 'ไม่จำกัด'; ?></span>
                     </div>
                 </div>
 
-                <h1 class="text-xl lg:text-2xl font-bold text-gray-900 mb-3 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
+                <h1 class="text-xl lg:text-2xl font-bold text-gray-900 mb-2 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
                     <?php echo htmlspecialchars($row["title"]) ?>
                 </h1>
                 
+                <div class="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+                    <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span class="line-clamp-1"><?php echo htmlspecialchars($row["location"]) ?></span>
+                </div>
+
                 <p class="text-gray-500 text-sm line-clamp-2 mb-4 leading-relaxed">
                     <?php echo htmlspecialchars($row["description"]) ?>
                 </p>
 
                 <div class="flex flex-col gap-2 mt-auto mb-6">
                     <div class="flex items-center text-sm text-gray-600">
-                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <span>เริ่มต้น: <?php echo date('d/m/Y H:i', strtotime($row["start_date"])); ?> น.</span>
+                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>เริ่มต้น: <?php echo date('d/m/Y H:i', $start_date_ts); ?> น.</span>
                     </div>
                     <div class="flex items-center text-sm text-gray-600">
-                        <svg class="w-4 h-4 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <span>สิ้นสุด: <?php echo date('d/m/Y H:i', strtotime($row["end_date"])); ?> น.</span>
+                        <svg class="w-4 h-4 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>สิ้นสุด: <?php echo date('d/m/Y H:i', $end_date_ts); ?> น.</span>
                     </div>
                 </div>
 
@@ -192,7 +225,12 @@ $result = $stmt->get_result();
     </div>
 
 <?php else: ?>
-    <div class="flex flex-col items-center justify-center w-full min-h-[400px] bg-white rounded-2xl border border-gray-100 shadow-sm mb-4">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2" style="font-family: 'Kanit', sans-serif;">ไม่พบกิจกรรมที่ค้นหา</h2>
+    <!-- กรณีไม่พบข้อมูล -->
+    <div class="flex flex-col items-center justify-center w-full min-h-[300px] bg-white rounded-2xl border border-gray-100 shadow-sm mb-4 p-8">
+        <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2 font-['Kanit']">ไม่พบกิจกรรมที่ค้นหา</h2>
+        <p class="text-gray-500 text-sm font-['Kanit'] text-center">ลองเปลี่ยนคำค้นหา หรือยกเลิกตัวกรองบางอย่างดูนะ</p>
     </div>
 <?php endif; ?>
