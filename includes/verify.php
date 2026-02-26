@@ -19,9 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
             require("database.php");
             $conn = getConnection();
 
-            $sql = "UPDATE registrations SET status = 'attended' WHERE user_id = ?";
+            $sql = "UPDATE registrations SET status = 'attended' WHERE user_id = ? AND event_id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $_SESSION['user_id']);
+            $stmt->bind_param("ii", $_SESSION['user_id'], $_GET['event_id']);
             $stmt->execute();
 
             header('Location: /../templates/index.php');

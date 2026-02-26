@@ -55,7 +55,7 @@ try {
     echo "ส่งไม่สำเร็จเนื่องจาก: {$mail->ErrorInfo}";
 }
 
-header('Location: \..\templates\verifyOTP.php');
+header('Location: \..\templates\verifyOTP.php?event_id=' . $_GET['event_id']);
 ?>
 
 <!-- <!DOCTYPE html>
