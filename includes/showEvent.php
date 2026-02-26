@@ -3,23 +3,22 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// เช็ค path ของ database.php ให้ถูกต้องด้วยนะครับ (ถ้า database.php อยู่โฟลเดอร์เดียวกันให้ใช้ไฟล์นี้)
+// เช็ค path ของ database.php ให้ถูกต้อง
 require_once("database.php");
 $conn = getConnection();
 
 $current_user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 
-// รับค่าจาก AJAX / GET (รับค่าค้นหา, วันที่, และการเรียงลำดับ)
+// รับค่าจาก AJAX / GET
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
-$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'latest'; // รับค่าการจัดเรียง
+$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'latest'; 
 
 // ---------------------------------------------
-// สร้าง Dynamic SQL Query
+// สร้าง Dynamic SQL Query (เอา Subquery รูปออก เพราะเราจะไปดึงแยกทีละหลายรูป)
 // ---------------------------------------------
 $sql = "SELECT e.*, 
-        (SELECT image_path FROM event_images WHERE event_id = e.event_id LIMIT 1) AS image_path,
         (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status IN ('approved','attended')) AS current_participants,
         (SELECT status FROM registrations WHERE event_id = e.event_id AND user_id = ?) AS status
         FROM events e ";
@@ -28,56 +27,39 @@ $conditions = [];
 $params = [$current_user_id];
 $types = "i";
 
-// 1. ถ้ามีคำค้นหา (ค้นหาจากชื่อ, รายละเอียด, และสถานที่)
 if (!empty($search)) {
     $conditions[] = "(e.title LIKE ? OR e.description LIKE ? OR e.location LIKE ?)";
     $search_param = "%" . $search . "%";
     array_push($params, $search_param, $search_param, $search_param);
     $types .= "sss";
 }
-// 2. ถ้ามีวันเริ่มต้น
 if (!empty($start_date)) {
     $conditions[] = "e.start_date >= ?";
     $params[] = $start_date . " 00:00:00";
     $types .= "s";
 }
-// 3. ถ้ามีวันสิ้นสุด
 if (!empty($end_date)) {
     $conditions[] = "e.end_date <= ?";
     $params[] = $end_date . " 23:59:59";
     $types .= "s";
 }
 
-// เอาเงื่อนไข WHERE มารวมกัน
 if (count($conditions) > 0) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
-// ---------------------------------------------
-// จัดการเงื่อนไขการเรียงลำดับ (ORDER BY)
-// ---------------------------------------------
+// การเรียงลำดับ
 if ($sort_by === 'registered_first') {
-    // ดันคนที่ลงทะเบียนแล้ว (pending, approved, attended) ขึ้นบนสุด
     $sql .= " ORDER BY CASE WHEN status IN ('pending', 'approved', 'attended') THEN 1 ELSE 2 END ASC, e.created_at DESC";
-
 } elseif ($sort_by === 'upcoming_first') {
-    // วันที่จัดงานใกล้ถึงที่สุด
     $sql .= " ORDER BY e.start_date ASC";
-
 } elseif ($sort_by === 'popular') {
-    // ยอดฮิต: เรียงตามจำนวนคนเข้าร่วมจากมากไปน้อย
     $sql .= " ORDER BY current_participants DESC, e.created_at DESC";
-
 } elseif ($sort_by === 'seats_available') {
-    // ที่นั่งเหลือเยอะสุด (ถ้ารับไม่จำกัด e.max_participants=0 ให้อยู่บนสุด)
     $sql .= " ORDER BY CASE WHEN e.max_participants = 0 THEN 999999 ELSE (e.max_participants - current_participants) END DESC";
-
 } elseif ($sort_by === 'title_asc') {
-    // เรียงตามตัวอักษร
     $sql .= " ORDER BY e.title ASC";
-
 } else {
-    // latest (ค่าเริ่มต้น): สร้างใหม่ล่าสุด
     $sql .= " ORDER BY e.created_at DESC";
 }
 
@@ -94,7 +76,23 @@ $result = $stmt->get_result();
 <!-- ========================================== -->
 <?php if ($result && $result->num_rows > 0): ?>
     <div class="flex flex-col gap-6 w-full pb-10">
-    <?php while ($row = $result->fetch_assoc()) : ?>
+    <?php while ($row = $result->fetch_assoc()) : 
+        $event_id = $row['event_id'];
+        
+        // 🌟 ดึงรูปภาพ "ทั้งหมด" ของกิจกรรมนี้
+        $img_sql = "SELECT image_path FROM event_images WHERE event_id = ?";
+        $img_stmt = $conn->prepare($img_sql);
+        $img_stmt->bind_param("i", $event_id);
+        $img_stmt->execute();
+        $img_res = $img_stmt->get_result();
+        
+        $images = [];
+        while($img_row = $img_res->fetch_assoc()) {
+            $images[] = $img_row['image_path'];
+        }
+        $img_stmt->close();
+        // ----------------------------------------
+    ?>
         
         <?php
             // ตรรกะเช็คสถานะปุ่ม
@@ -107,10 +105,7 @@ $result = $stmt->get_result();
             $status = $row["status"]; 
             $event_owner_id = $row["user_id"]; 
 
-            $btn_text = "";
-            $btn_class = "";
-            $btn_link = "";
-            $is_disabled = true;
+            $btn_text = ""; $btn_class = ""; $btn_link = ""; $is_disabled = true;
 
             if ($current_user_id == $event_owner_id && $current_user_id != 0) {
                 $btn_text = "จัดการกิจกรรม (ของคุณ)";
@@ -130,7 +125,7 @@ $result = $stmt->get_result();
                 if ($now >= $start_date_ts && $now <= $end_date_ts) {
                     $btn_text = "เข้าร่วมกิจกรรม";
                     $btn_class = "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:-translate-y-0.5";
-                    $btn_link = "../includes/OTP.php?event_id=" . $row['event_id']; // แก้ไข slash ให้ถูกต้อง
+                    $btn_link = "../includes/OTP.php?event_id=" . $row['event_id']; 
                     $is_disabled = false;
                 } else {
                     $btn_text = "สมัครเรียบร้อยแล้ว";
@@ -156,24 +151,61 @@ $result = $stmt->get_result();
                 $btn_link = "../includes/reg_event.php?user_id={$current_user_id}&event_id={$row['event_id']}";
                 $is_disabled = false;
             }
+            
+            // สคริปต์สไลด์รูป (ป้องกันบั๊กตอนโหลดผ่าน AJAX)
+            $js_prev = "let id={$event_id}; let t=document.getElementById('track-'+id); let m=parseInt(t.dataset.max); let c=parseInt(t.dataset.current)-1; if(c<0)c=m; t.dataset.current=c; t.style.transform=`translateX(-\${c*100}%)`; for(let i=0;i<=m;i++){let d=document.getElementById('dot-'+id+'-'+i); if(i===c){d.classList.remove('bg-white/50');d.classList.add('bg-white','scale-125');}else{d.classList.remove('bg-white','scale-125');d.classList.add('bg-white/50');}}";
+            $js_next = "let id={$event_id}; let t=document.getElementById('track-'+id); let m=parseInt(t.dataset.max); let c=parseInt(t.dataset.current)+1; if(c>m)c=0; t.dataset.current=c; t.style.transform=`translateX(-\${c*100}%)`; for(let i=0;i<=m;i++){let d=document.getElementById('dot-'+id+'-'+i); if(i===c){d.classList.remove('bg-white/50');d.classList.add('bg-white','scale-125');}else{d.classList.remove('bg-white','scale-125');d.classList.add('bg-white/50');}}";
         ?>
 
         <div class="group flex flex-col md:flex-row w-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-            <!-- รูปภาพ -->
-            <div class="relative w-full md:w-[40%] h-[200px] md:h-auto overflow-hidden bg-gray-100 shrink-0">
-                <?php if (!empty($row['image_path'])): ?>
-                    <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        src="../<?php echo htmlspecialchars($row['image_path']); ?>" alt="Event Image">
+            
+            <!-- 🌟 ระบบสไลด์รูปภาพ (Carousel) -->
+            <div class="relative w-full md:w-[40%] h-[200px] md:h-auto overflow-hidden bg-gray-900 shrink-0 group/slider">
+                
+                <?php if (count($images) > 0): ?>
+                    <!-- แกนสไลด์รูปภาพ -->
+                    <div id="track-<?= $event_id ?>" class="flex w-full h-full transition-transform duration-500 ease-in-out" data-current="0" data-max="<?= count($images) - 1 ?>">
+                        <?php foreach($images as $img): ?>
+                            <div class="w-full h-full shrink-0 flex items-center justify-center bg-gray-100">
+                                <img class="w-full h-full object-cover" src="../<?= htmlspecialchars($img) ?>" alt="Event Image">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- ปุ่มเลื่อนซ้าย-ขวา (จะแสดงเมื่อมีรูปมากกว่า 1 รูป) -->
+                    <?php if (count($images) > 1): ?>
+                        <button type="button" onclick="<?= $js_prev ?>" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm opacity-0 group-hover/slider:opacity-100 transition-all z-10 focus:outline-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        
+                        <button type="button" onclick="<?= $js_next ?>" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm opacity-0 group-hover/slider:opacity-100 transition-all z-10 focus:outline-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+
+                        <!-- จุดบอกตำแหน่งรูป (Dots) -->
+                        <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+                            <?php foreach($images as $index => $img): ?>
+                                <div id="dot-<?= $event_id ?>-<?= $index ?>" class="w-2 h-2 rounded-full transition-all duration-300 <?= $index === 0 ? 'bg-white scale-125' : 'bg-white/50' ?> shadow-sm"></div>
+                            <?php endforeach; ?>
+                        </div>
+                        
+                        <!-- ป้ายบอกจำนวนรูปมุมขวาบน -->
+                        <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-md font-medium">
+                            <svg class="w-3 h-3 inline-block mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <?= count($images) ?>
+                        </div>
+                    <?php endif; ?>
+
                 <?php else: ?>
+                    <!-- กรณีไม่มีรูปภาพเลย -->
                     <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     </div>
                 <?php endif; ?>
             </div>
 
-            <!-- ข้อมูลกิจกรรม -->
+            <!-- ข้อมูลกิจกรรม (เหมือนเดิม) -->
             <div class="flex flex-col flex-grow p-6 lg:p-8">
-                
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-semibold px-2 py-1 bg-orange-50 text-orange-600 rounded-md">
                         กิจกรรม
@@ -231,6 +263,5 @@ $result = $stmt->get_result();
             <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
         <h2 class="text-xl font-bold text-gray-800 mb-2 font-['Kanit']">ไม่พบกิจกรรมที่ค้นหา</h2>
-        <p class="text-gray-500 text-sm font-['Kanit'] text-center">ลองเปลี่ยนคำค้นหา หรือยกเลิกตัวกรองบางอย่างดูนะ</p>
     </div>
 <?php endif; ?>
