@@ -139,15 +139,43 @@ $result = $stmt->get_result();
             </div>
 
             <div class="flex flex-col flex-grow p-6 lg:p-8">
+                
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold px-2 py-1 bg-orange-50 text-orange-600 rounded-md">
+                        กิจกรรม
+                    </span>
+                    <div class="flex items-center text-sm text-gray-500 gap-1.5 font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>ผู้เข้าร่วม: <?php echo $current_participants; ?> / <?php echo $max_participants > 0 ? $max_participants : 'ไม่จำกัด'; ?></span>
+                    </div>
+                </div>
+
                 <h1 class="text-xl lg:text-2xl font-bold text-gray-900 mb-3 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
                     <?php echo htmlspecialchars($row["title"]) ?>
                 </h1>
                 
-                <p class="text-gray-500 text-sm line-clamp-2 mb-6 leading-relaxed">
+                <p class="text-gray-500 text-sm line-clamp-2 mb-4 leading-relaxed">
                     <?php echo htmlspecialchars($row["description"]) ?>
                 </p>
 
-                <div class="mt-auto pt-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex flex-col gap-2 mt-auto mb-6">
+                    <div class="flex items-center text-sm text-gray-600">
+                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>เริ่มต้น: <?php echo date('d/m/Y H:i', strtotime($row["start_date"])); ?> น.</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600">
+                        <svg class="w-4 h-4 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>สิ้นสุด: <?php echo date('d/m/Y H:i', strtotime($row["end_date"])); ?> น.</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <?php if ($is_disabled): ?>
                         <button disabled class="w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 <?php echo $btn_class; ?>">
                             <?php echo $btn_text; ?>
