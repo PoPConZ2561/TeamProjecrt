@@ -1,4 +1,11 @@
 <?php
+
+session_start();
+if (!isset($_SESSION['user_id']) && !isset($_GET['event_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
 require_once __DIR__ . "/../includes/verify.php";
 ?>
 

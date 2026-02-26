@@ -18,13 +18,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $gender = $_POST["gender"];
 
     $sql_update = "UPDATE users 
-                   SET name = '$name', phone_number = '$phone_number', birthdate = '$birthdate', gender = '$gender' 
-                   WHERE user_id = '$user_id'";
-    if (mysqli_query($conn, $sql_update)) {
-        echo "อัปเดตข้อมูลสำเร็จ!";
-    } else {
-        echo "Error updating record: " . mysqli_error($conn);
-    }
+                   SET name = '?', phone_number = '?', birthdate = '?', gender = '?' 
+                   WHERE user_id = '?'";
+    $stmt = $conn->prepare($sql_update);
+    $stmt->bind_param("ssssi", $name, $phone_number, $birthdate, $gender, $user_id);
+    $stmt->execute();
+
     $_SESSION['name'] = $name;
     $_SESSION['phone_number'] = $phone_number;
     $_SESSION['birthdate'] = $birthdate;
