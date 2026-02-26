@@ -49,7 +49,19 @@ $page = "index";
                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors">
                         </div>
 
-                        <!-- 2. การเรียงลำดับ (เพิ่มเข้ามาใหม่ ⭐) -->
+                        <!-- ตัวกรองการแสดงผล (ความเป็นเจ้าของ) -->
+                        <?php if (isset($_SESSION['user_id'])): ?>
+                        <div class="flex flex-col gap-1">
+                            <label class="option_text font-medium text-gray-700">การแสดงผล</label>
+                            <select id="ownership-filter" name="ownership_filter" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors bg-white cursor-pointer">
+                                <option value="all">กิจกรรมทั้งหมด</option>
+                                <option value="not_mine">เฉพาะที่ฉันไม่ได้สร้าง</option>
+                                <option value="mine">เฉพาะที่ฉันเป็นคนสร้าง</option>
+                            </select>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- 2. การเรียงลำดับ -->
                         <div class="flex flex-col gap-1">
                             <label class="option_text font-medium text-gray-700">การเรียงลำดับ</label>
                             <select id="sort-by" name="sort_by" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors bg-white cursor-pointer">
@@ -58,8 +70,6 @@ $page = "index";
                                     <option value="registered_first">กิจกรรมที่ฉันลงทะเบียน (บนสุด)</option>
                                 <?php endif; ?>
                                 <option value="upcoming_first">วันที่จัดงาน (ใกล้ถึงที่สุด)</option>
-
-                                <!-- 🌟 เพิ่ม 3 ตัวเลือกใหม่ตรงนี้ -->
                                 <option value="popular">🔥 กิจกรรมยอดฮิต (คนสมัครเยอะสุด)</option>
                                 <option value="seats_available">🪑 ที่นั่งเหลือเยอะสุด</option>
                                 <option value="title_asc">🔤 ชื่อกิจกรรม (ก-ฮ / A-Z)</option>
@@ -113,7 +123,8 @@ $page = "index";
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('search-input');
-            const sortByInput = document.getElementById('sort-by'); // ตัวแปรใหม่
+            const sortByInput = document.getElementById('sort-by');
+            const ownershipInput = document.getElementById('ownership-filter'); // ตัวแปรรับค่า ownership
             const startDateInput = document.getElementById('start-date');
             const endDateInput = document.getElementById('end-date');
             const eventsContainer = document.getElementById('events-container');
@@ -125,12 +136,13 @@ $page = "index";
             // ฟังก์ชันดึงข้อมูลกิจกรรมผ่าน AJAX
             function fetchEvents() {
                 const search = searchInput.value;
-                const sortBy = sortByInput.value; // ดึงค่าการเรียงลำดับ
+                const sortBy = sortByInput.value;
+                const ownership = ownershipInput ? ownershipInput.value : 'all'; // ถ้ายไม่ได้ล็อกอินจะเป็น all ตลอด
                 const startDate = startDateInput.value;
                 const endDate = endDateInput.value;
 
                 // จัดการแสดง/ซ่อน ปุ่มล้างค่า
-                if (search || startDate || endDate || sortBy !== 'latest') {
+                if (search || startDate || endDate || sortBy !== 'latest' || ownership !== 'all') {
                     clearBtn.classList.remove('hidden');
                 } else {
                     clearBtn.classList.add('hidden');
@@ -144,8 +156,8 @@ $page = "index";
                     searchStatus.classList.add('hidden');
                 }
 
-                // เพิ่ม sort_by เข้าไปใน URL Parameter
-                const url = `../includes/showEvent.php?search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&sort_by=${encodeURIComponent(sortBy)}`;
+                // เพิ่ม ownership เข้าไปใน URL Parameter ด้วย
+                const url = `../includes/showEvent.php?search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&sort_by=${encodeURIComponent(sortBy)}&ownership=${encodeURIComponent(ownership)}`;
 
                 fetch(url)
                     .then(response => response.text())
@@ -157,7 +169,8 @@ $page = "index";
 
             // ดักจับ Event (Real-time)
             searchInput.addEventListener('input', fetchEvents);
-            sortByInput.addEventListener('change', fetchEvents); // ดักจับตอนเปลี่ยน Dropdown
+            sortByInput.addEventListener('change', fetchEvents);
+            if(ownershipInput) ownershipInput.addEventListener('change', fetchEvents); // ดักการเปลี่ยนความเป็นเจ้าของ
             startDateInput.addEventListener('change', fetchEvents);
             endDateInput.addEventListener('change', fetchEvents);
 
@@ -170,7 +183,8 @@ $page = "index";
             // ปุ่มล้างตัวกรอง
             clearBtn.addEventListener('click', function() {
                 searchInput.value = '';
-                sortByInput.value = 'latest'; // คืนค่ากลับไปเริ่มต้น
+                sortByInput.value = 'latest';
+                if(ownershipInput) ownershipInput.value = 'all';
                 startDateInput.value = '';
                 endDateInput.value = '';
                 fetchEvents();

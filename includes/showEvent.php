@@ -14,9 +14,10 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
 $sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'latest'; 
+$ownership = isset($_GET['ownership']) ? $_GET['ownership'] : 'all'; // รับค่าความเป็นเจ้าของ
 
 // ---------------------------------------------
-// สร้าง Dynamic SQL Query (เอา Subquery รูปออก เพราะเราจะไปดึงแยกทีละหลายรูป)
+// สร้าง Dynamic SQL Query 
 // ---------------------------------------------
 $sql = "SELECT e.*, 
         (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status IN ('approved','attended')) AS current_participants,
@@ -27,23 +28,42 @@ $conditions = [];
 $params = [$current_user_id];
 $types = "i";
 
+// 1. ค้นหาข้อความ
 if (!empty($search)) {
     $conditions[] = "(e.title LIKE ? OR e.description LIKE ? OR e.location LIKE ?)";
     $search_param = "%" . $search . "%";
     array_push($params, $search_param, $search_param, $search_param);
     $types .= "sss";
 }
+
+// 2. วันเริ่มต้น
 if (!empty($start_date)) {
     $conditions[] = "e.start_date >= ?";
     $params[] = $start_date . " 00:00:00";
     $types .= "s";
 }
+
+// 3. วันสิ้นสุด
 if (!empty($end_date)) {
     $conditions[] = "e.end_date <= ?";
     $params[] = $end_date . " 23:59:59";
     $types .= "s";
 }
 
+// 🌟 4. ตัวกรองความเป็นเจ้าของกิจกรรม (จะทำงานเมื่อล็อกอินแล้วเท่านั้น)
+if ($current_user_id != 0) {
+    if ($ownership === 'not_mine') {
+        $conditions[] = "e.user_id != ?"; // ค้นหาอันที่ user_id ไม่ตรงกับคนที่ล็อกอิน
+        $params[] = $current_user_id;
+        $types .= "i";
+    } elseif ($ownership === 'mine') {
+        $conditions[] = "e.user_id = ?"; // ค้นหาเฉพาะอันที่เป็นของตัวเอง
+        $params[] = $current_user_id;
+        $types .= "i";
+    }
+}
+
+// นำเงื่อนไข WHERE มารวมกัน
 if (count($conditions) > 0) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
@@ -79,7 +99,7 @@ $result = $stmt->get_result();
     <?php while ($row = $result->fetch_assoc()) : 
         $event_id = $row['event_id'];
         
-        // 🌟 ดึงรูปภาพ "ทั้งหมด" ของกิจกรรมนี้
+        // ดึงรูปภาพทั้งหมดของกิจกรรมนี้
         $img_sql = "SELECT image_path FROM event_images WHERE event_id = ?";
         $img_stmt = $conn->prepare($img_sql);
         $img_stmt->bind_param("i", $event_id);
@@ -91,7 +111,6 @@ $result = $stmt->get_result();
             $images[] = $img_row['image_path'];
         }
         $img_stmt->close();
-        // ----------------------------------------
     ?>
         
         <?php
@@ -152,18 +171,17 @@ $result = $stmt->get_result();
                 $is_disabled = false;
             }
             
-            // สคริปต์สไลด์รูป (ป้องกันบั๊กตอนโหลดผ่าน AJAX)
+            // สคริปต์สไลด์รูป
             $js_prev = "let id={$event_id}; let t=document.getElementById('track-'+id); let m=parseInt(t.dataset.max); let c=parseInt(t.dataset.current)-1; if(c<0)c=m; t.dataset.current=c; t.style.transform=`translateX(-\${c*100}%)`; for(let i=0;i<=m;i++){let d=document.getElementById('dot-'+id+'-'+i); if(i===c){d.classList.remove('bg-white/50');d.classList.add('bg-white','scale-125');}else{d.classList.remove('bg-white','scale-125');d.classList.add('bg-white/50');}}";
             $js_next = "let id={$event_id}; let t=document.getElementById('track-'+id); let m=parseInt(t.dataset.max); let c=parseInt(t.dataset.current)+1; if(c>m)c=0; t.dataset.current=c; t.style.transform=`translateX(-\${c*100}%)`; for(let i=0;i<=m;i++){let d=document.getElementById('dot-'+id+'-'+i); if(i===c){d.classList.remove('bg-white/50');d.classList.add('bg-white','scale-125');}else{d.classList.remove('bg-white','scale-125');d.classList.add('bg-white/50');}}";
         ?>
 
         <div class="group flex flex-col md:flex-row w-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
             
-            <!-- 🌟 ระบบสไลด์รูปภาพ (Carousel) -->
+            <!-- ระบบสไลด์รูปภาพ -->
             <div class="relative w-full md:w-[40%] h-[200px] md:h-auto overflow-hidden bg-gray-900 shrink-0 group/slider">
                 
                 <?php if (count($images) > 0): ?>
-                    <!-- แกนสไลด์รูปภาพ -->
                     <div id="track-<?= $event_id ?>" class="flex w-full h-full transition-transform duration-500 ease-in-out" data-current="0" data-max="<?= count($images) - 1 ?>">
                         <?php foreach($images as $img): ?>
                             <div class="w-full h-full shrink-0 flex items-center justify-center bg-gray-100">
@@ -172,7 +190,6 @@ $result = $stmt->get_result();
                         <?php endforeach; ?>
                     </div>
 
-                    <!-- ปุ่มเลื่อนซ้าย-ขวา (จะแสดงเมื่อมีรูปมากกว่า 1 รูป) -->
                     <?php if (count($images) > 1): ?>
                         <button type="button" onclick="<?= $js_prev ?>" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm opacity-0 group-hover/slider:opacity-100 transition-all z-10 focus:outline-none">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
@@ -182,14 +199,12 @@ $result = $stmt->get_result();
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
 
-                        <!-- จุดบอกตำแหน่งรูป (Dots) -->
                         <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
                             <?php foreach($images as $index => $img): ?>
                                 <div id="dot-<?= $event_id ?>-<?= $index ?>" class="w-2 h-2 rounded-full transition-all duration-300 <?= $index === 0 ? 'bg-white scale-125' : 'bg-white/50' ?> shadow-sm"></div>
                             <?php endforeach; ?>
                         </div>
                         
-                        <!-- ป้ายบอกจำนวนรูปมุมขวาบน -->
                         <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-md font-medium">
                             <svg class="w-3 h-3 inline-block mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <?= count($images) ?>
@@ -197,14 +212,13 @@ $result = $stmt->get_result();
                     <?php endif; ?>
 
                 <?php else: ?>
-                    <!-- กรณีไม่มีรูปภาพเลย -->
                     <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     </div>
                 <?php endif; ?>
             </div>
 
-            <!-- ข้อมูลกิจกรรม (เหมือนเดิม) -->
+            <!-- ข้อมูลกิจกรรม -->
             <div class="flex flex-col flex-grow p-6 lg:p-8">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-semibold px-2 py-1 bg-orange-50 text-orange-600 rounded-md">
@@ -263,5 +277,6 @@ $result = $stmt->get_result();
             <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
         <h2 class="text-xl font-bold text-gray-800 mb-2 font-['Kanit']">ไม่พบกิจกรรมที่ค้นหา</h2>
+        <p class="text-gray-500 text-sm font-['Kanit'] text-center">ลองเปลี่ยนคำค้นหา หรือยกเลิกตัวกรองบางอย่างดูนะ</p>
     </div>
 <?php endif; ?>

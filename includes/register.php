@@ -23,15 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 2. สั่งรันคำสั่ง (และเช็คว่าสำเร็จไหม)
     if ($stmt->execute()) {
-        // ถ้าสำเร็จให้ปิดการเชื่อมต่อแล้วเด้งไปหน้า Login
         $stmt->close();
         $conn->close();
         
         // แก้ไข path ให้ถูกต้อง
         header("Location: ../templates/login.php");
-        exit(); // ควรใส่ exit() เสมอหลัง header location
     } else {
-        // ถ้าไม่สำเร็จ (เช่น Email ซ้ำในระบบ) ให้โชว์ Error
         echo "เกิดข้อผิดพลาด: " . $stmt->error;
     }
 }
