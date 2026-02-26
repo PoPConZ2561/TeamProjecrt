@@ -82,6 +82,16 @@ require_once __DIR__ . '/../routes/manage_event.php'; // ดึงข้อม�
                 
                 <h1 class="text-3xl font-bold title_text border-b-2 pb-2">จัดการกิจกรรม: <span class="text-purple-600"><?= htmlspecialchars($selected_event['title']) ?></span></h1>
 
+                <?php if(time() > strtotime($selected_event['end_date'])): ?>
+                    <div class="mb-6">
+                        <a href="event_stat.php?event_id=<?= $selected_event['event_id'] ?>" 
+                           class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-5 py-2.5 rounded-lg hover:from-purple-700 hover:to-blue-700 transition shadow-md font-medium">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            ดูสรุปสถิติกิจกรรม
+                        </a>
+                    </div>
+                <?php endif; ?>
+
                 <!-- กล่อง 1: แก้ไขข้อมูลกิจกรรม -->
                 <div class="flex flex-col w-full bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <form action="..\includes\process_update_event.php" method="post" enctype="multipart/form-data" class="flex flex-col lg:flex-row w-full gap-8">

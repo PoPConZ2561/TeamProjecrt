@@ -1,7 +1,5 @@
 <?php 
 
-session_start();
-
 $isVerify = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST'){
