@@ -68,7 +68,7 @@ $limit->bind_param("i", $event_id);
 $limit->execute();
 $max = $limit->get_result()->fetch_assoc()['max_participants'];
 
-if ($total >= $max) {
+if ($total >= $max && $max > 0) {
     die("กิจกรรมเต็มแล้ว");
 }
 

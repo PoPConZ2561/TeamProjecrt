@@ -39,7 +39,8 @@ $result = $stmt->get_result();
             // ==========================================
             $now = time(); 
             $start_date = strtotime($row["start_date"]); 
-            $end_date = strtotime($row["end_date"]);     
+            $end_date = strtotime($row["end_date"]);  
+            echo $now . " | " . $start_date . " | " . $end_date . "<br>"; // Debug: แสดง timestamp ของวันที่ปัจจุบัน, วันที่เริ่ม, วันที่สิ้นสุด   
             
             $max_participants = $row["max_participants"];
             $current_participants = $row["current_participants"];

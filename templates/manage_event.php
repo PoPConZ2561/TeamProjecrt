@@ -80,7 +80,7 @@ if ($selected_event_id != null) {
     while ($p = $res_participants->fetch_assoc()) {
         if ($p['status'] == 'pending') {
             $pending_users[] = $p;
-        } elseif ($p['status'] == 'approved') {
+        } elseif ($p['status'] == 'approved' || $p['status'] == 'attended') { // นับทั้ง approved และ attended เป็นสมาชิกที่เข้าร่วมแล้ว
             $approved_users[] = $p;
         }
     }
@@ -276,7 +276,7 @@ if ($selected_event_id != null) {
                 <!-- กล่อง 3: สมาชิกที่อนุมัติแล้ว -->
                 <div class="flex flex-col w-full bg-white rounded-lg shadow-sm border border-gray-100 p-6 gap-4">
                     <div class="flex flex-row items-center justify-between border-b pb-2">
-                        <h1 class="text-2xl font-bold title_text">สมาชิกที่เข้าร่วมแล้ว <span class="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full ml-2"><?= count($approved_users) ?>/<?= $selected_event['max_participants'] == 0 ? '∞' : $selected_event['max_participants'] ?></span></h1>
+                        <h1 class="text-2xl font-bold title_text">สมาชิกที่อนุมัติแล้ว <span class="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full ml-2"><?= count($approved_users) ?>/<?= $selected_event['max_participants'] == 0 ? '∞' : $selected_event['max_participants'] ?></span></h1>
                     </div>
                     
                     <div class="overflow-x-auto rounded-lg border border-gray-200">
@@ -307,7 +307,11 @@ if ($selected_event_id != null) {
                                             <td class="p-3 text-gray-600"><?= htmlspecialchars($user['email']) ?></td>
                                             <td class="p-3 text-gray-600"><?= htmlspecialchars($user['phone_number']) ?></td>
                                             <td class="p-3 text-center">
-                                                <a href="process_registration.php?action=remove&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition" onclick="return confirm('แน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้ออกจากกิจกรรม?');">ลบ</a>
+                                                <?php if($user['status'] == 'attended'):?>
+                                                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">เข้าร่วมแล้ว</span>
+                                                <?php else: ?>
+                                                    <a href="process_registration.php?action=remove&user_id=<?= $user['user_id'] ?>&event_id=<?= $selected_event_id ?>" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition" onclick="return confirm('แน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้ออกจากกิจกรรม?');">ลบ</a>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
