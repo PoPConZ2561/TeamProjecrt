@@ -6,7 +6,6 @@ require_once __DIR__ . '/../includes/event_stat.php'; // ตรวจสอบ�
 
 
 $attendance_rate = $total_approved > 0 ? round(($total_attended / $total_approved) * 100, 2) : 0;
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -126,16 +125,47 @@ $attendance_rate = $total_approved > 0 ? round(($total_attended / $total_approve
                 <div class="bg-gradient-to-r from-purple-500 to-blue-500 h-4 rounded-full transition-all duration-1000" style="width: <?= $attendance_rate ?>%"></div>
             </div>
         </div>
-        <hr>
-        <h3>สรุปเพศ</h3>
+        <div class="mt-10 bg-white rounded-2xl shadow-lg p-8">
 
-        <p>ผู้ชาย: <?= $total_male ?> คน</p>
-        <p>ผู้หญิง: <?= $total_female ?> คน</p>
+            <h3 class="text-2xl font-bold mb-6 text-gray-700">
+                👥 ข้อมูลผู้เข้าร่วม
+            </h3>
 
-        <hr>
-        <h3>สรุปอายุ</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <p>อายุเฉลี่ย: <?= $avg_age ?> ปี</p>
+                <!-- ผู้ชาย -->
+                <div class="bg-blue-50 rounded-xl p-6 text-center shadow hover:shadow-md transition">
+                    <div class="text-4xl mb-2">👨</div>
+                    <p class="text-gray-600">ผู้ชาย</p>
+                    <p class="text-3xl font-bold text-blue-600">
+                        <?= $total_male ?>
+                    </p>
+                    <p class="text-sm text-gray-400">คน</p>
+                </div>
+
+                <!-- ผู้หญิง -->
+                <div class="bg-pink-50 rounded-xl p-6 text-center shadow hover:shadow-md transition">
+                    <div class="text-4xl mb-2">👩</div>
+                    <p class="text-gray-600">ผู้หญิง</p>
+                    <p class="text-3xl font-bold text-pink-600">
+                        <?= $total_female ?>
+                    </p>
+                    <p class="text-sm text-gray-400">คน</p>
+                </div>
+
+                <!-- อายุเฉลี่ย -->
+                <div class="bg-purple-50 rounded-xl p-6 text-center shadow hover:shadow-md transition">
+                    <div class="text-4xl mb-2">🎂</div>
+                    <p class="text-gray-600">อายุเฉลี่ย</p>
+                    <p class="text-3xl font-bold text-purple-600">
+                        <?= $avg_age ?>
+                    </p>
+                    <p class="text-sm text-gray-400">ปี</p>
+                </div>
+
+            </div>
+
+        </div>
     </main>
 
 </body>

@@ -27,8 +27,8 @@ SELECT
     SUM(CASE WHEN r.status = 'approved' THEN 1 ELSE 0 END) AS total_approved,
     SUM(CASE WHEN r.status = 'attended' THEN 1 ELSE 0 END) AS total_attended,
 
-    SUM(CASE WHEN u.gender = 'male' THEN 1 ELSE 0 END) AS total_male,
-    SUM(CASE WHEN u.gender = 'female' THEN 1 ELSE 0 END) AS total_female,
+    SUM(CASE WHEN u.gender = 'ชาย' THEN 1 ELSE 0 END) AS total_male,
+    SUM(CASE WHEN u.gender = 'หญิง' THEN 1 ELSE 0 END) AS total_female,
 
     ROUND(AVG(TIMESTAMPDIFF(YEAR, u.birthdate, CURDATE())),1) AS avg_age
 
