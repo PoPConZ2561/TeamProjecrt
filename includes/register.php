@@ -13,8 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gender = $_POST['gender'];
     $password = $_POST['password'];
 
-    $sql = "INSERT INTO users (user_id, name, email, phone_number, birthdate, gender, password) 
-    VALUES ('', '$name', '$email', '$phone_number', '$birthdate', '$gender', '$password')";
+    $sql = "INSERT INTO users (name, email, phone_number, birthdate, gender, password) 
+            VALUES ('?', '?', '?', '?', '?', '?')";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssss", $name, $email, $phone_number, $birthdate, $gender, $password);
+    $stmt->execute();
 
     mysqli_query($conn, $sql);
 

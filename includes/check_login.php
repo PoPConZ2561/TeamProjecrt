@@ -34,7 +34,7 @@ if (!isset($_POST['email']) || !isset($_POST['password'])) {
         header("Location: /../templates/index.php");
         exit();
     } else {
-        header("Location: login.php?error=1");
+        header("Location: /../templates/login.php?error=1");
         exit();
     }
 }

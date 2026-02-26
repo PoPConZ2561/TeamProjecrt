@@ -1,6 +1,11 @@
 <?php
 session_start();
 $page = "index";
+
+if (isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -66,6 +71,13 @@ $page = "index";
                     <input type="password" name="password" placeholder="รหัสผ่าน" class="pl-2 w-full h-[40px] border rounded-sm">
                     <input type="submit" value="ยืนยัน" class="login_text pl-2 w-full h-[40px] bg-blue-950 rounded-sm">
                 </form>
+                <p>
+                    <?php
+                    if (isset($_GET['error']) && $_GET['error'] == 1) {
+                        echo "<span class='text-red-500'>อีเมลหรือรหัสผ่านไม่ถูกต้อง</span>";
+                    }
+                    ?>
+                </p>
                 <a href="register.php" class="w-full mt-auto">
                     <p class="text-blue-500 underline">สมัครบัญชีใหม่</p>
                 </a>
