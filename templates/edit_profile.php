@@ -18,9 +18,15 @@ if (!isset($_SESSION['user_id'])) {
     <title>EVENTLY - Edit Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 🌟 เพิ่ม SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         body { font-family: "Kanit", sans-serif; }
         .title_text { color: #172554; }
+        /* ปรับแต่งฟอนต์ให้ SweetAlert2 ใช้ฟอนต์ Kanit ด้วย */
+        div.swal2-container { font-family: "Kanit", sans-serif; }
     </style>
 </head>
 
@@ -40,7 +46,8 @@ if (!isset($_SESSION['user_id'])) {
                 <h2 class="text-2xl font-bold title_text">แก้ไขข้อมูลส่วนตัว</h2>
             </div>
             
-            <form action="../includes/edit_profile.php" method="POST" class="space-y-5">
+            <!-- เพิ่ม id="editProfileForm" เพื่อใช้ดักจับด้วย JavaScript -->
+            <form id="editProfileForm" action="../includes/edit_profile.php" method="POST" class="space-y-5">
                 
                 <!-- ชื่อ-นามสกุล -->
                 <div>
@@ -94,5 +101,48 @@ if (!isset($_SESSION['user_id'])) {
             </form>
         </div>
     </main>
+
+    <!-- 🌟 สคริปต์ควบคุม SweetAlert2 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 1. ดักจับการกดปุ่ม Submit ฟอร์ม
+            const form = document.getElementById('editProfileForm');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // หยุดการส่งฟอร์มชั่วคราว
+                
+                // แสดง SweetAlert2 เพื่อยืนยัน
+                Swal.fire({
+                    title: 'ยืนยันการบันทึก?',
+                    text: "คุณต้องการอัปเดตข้อมูลส่วนตัวใช่หรือไม่",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2563eb', // สีปุ่มยืนยัน (สีฟ้า Tailwind)
+                    cancelButtonColor: '#d1d5db',  // สีปุ่มยกเลิก (สีเทา)
+                    confirmButtonText: 'ใช่, บันทึกเลย!',
+                    cancelButtonText: 'ยกเลิก',
+                    reverseButtons: true // สลับให้ปุ่มยืนยันอยู่ขวามือ
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // ถ้าผู้ใช้กดยืนยัน ให้ส่งฟอร์มไปให้ PHP ประมวลผลจริงๆ
+                        form.submit();
+                    }
+                });
+            });
+
+            // 2. เช็ค URL ว่ามี ?status=error ส่งกลับมาหรือไม่ (เผื่ออนาคตคุณปรับหลังบ้าน)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('status') === 'error') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด!',
+                    text: 'ไม่สามารถอัปเดตข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                    confirmButtonColor: '#ef4444'
+                });
+                // ลบ parameter ออกจาก URL เพื่อไม่ให้แจ้งเตือนซ้ำตอนรีเฟรช
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+        });
+    </script>
 </body>
 </html>

@@ -14,7 +14,10 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
 $sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'latest'; 
-$ownership = isset($_GET['ownership']) ? $_GET['ownership'] : 'all'; // รับค่าความเป็นเจ้าของ
+
+// 🌟 ตั้งค่า Default Ownership: ถ้าล็อกอินแล้วให้เป็น 'not_mine' ถ้ายังไม่ล็อกอินเป็น 'all'
+$default_ownership = ($current_user_id != 0) ? 'not_mine' : 'all';
+$ownership = (isset($_GET['ownership']) && $_GET['ownership'] !== '') ? $_GET['ownership'] : $default_ownership;
 
 // ---------------------------------------------
 // สร้าง Dynamic SQL Query 
@@ -50,10 +53,10 @@ if (!empty($end_date)) {
     $types .= "s";
 }
 
-// 🌟 4. ตัวกรองความเป็นเจ้าของกิจกรรม (จะทำงานเมื่อล็อกอินแล้วเท่านั้น)
+// 🌟 4. ตัวกรองความเป็นเจ้าของกิจกรรม
 if ($current_user_id != 0) {
     if ($ownership === 'not_mine') {
-        $conditions[] = "e.user_id != ?"; // ค้นหาอันที่ user_id ไม่ตรงกับคนที่ล็อกอิน
+        $conditions[] = "e.user_id != ?"; // ค้นหาอันที่ user_id ไม่ตรงกับคนที่ล็อกอิน (ซ่อนของตัวเอง)
         $params[] = $current_user_id;
         $types .= "i";
     } elseif ($ownership === 'mine') {

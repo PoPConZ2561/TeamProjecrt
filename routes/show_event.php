@@ -1,5 +1,6 @@
 <?php
 
+// ดึงการประมวลผลมาจากโฟลเดอร์ includes
 require_once __DIR__ . "/../includes/show_event.php";
 
 if ($result && $result->num_rows > 0): ?>
@@ -77,8 +78,10 @@ if ($result && $result->num_rows > 0): ?>
                 $is_disabled = false;
             } else {
                 $btn_text = "สมัครเข้าร่วมกิจกรรม";
-                $btn_class = "bg-green-600 hover:bg-green-700 text-white shadow-md hover:-translate-y-0.5";
-                $btn_link = "../includes/reg_event.php?user_id={$current_user_id}&event_id={$row['event_id']}";
+                // 🌟 เพิ่มคลาส btn-register ตรงนี้ เพื่อให้ JS ดักจับการคลิก
+                $btn_class = "btn-register bg-green-600 hover:bg-green-700 text-white shadow-md hover:-translate-y-0.5";
+                // $btn_link ยังเหมือนเดิม
+                $btn_link = "../routes/reg_event.php?user_id={$current_user_id}&event_id={$row['event_id']}"; 
                 $is_disabled = false;
             }
 
@@ -96,7 +99,7 @@ if ($result && $result->num_rows > 0): ?>
                         <div id="track-<?= $event_id ?>" class="flex w-full h-full transition-transform duration-500 ease-in-out" data-current="0" data-max="<?= count($images) - 1 ?>">
                             <?php foreach ($images as $img): ?>
                                 <div class="w-full h-full shrink-0 flex items-center justify-center bg-gray-100">
-                                    <img class="w-full h-full object-cover" src="/../public/<?= htmlspecialchars($img) ?>" alt="Event Image">
+                                    <img class="w-full h-full object-cover" src="../public/<?= htmlspecialchars($img) ?>" alt="Event Image">
                                 </div>
                             <?php endforeach; ?>
                         </div>

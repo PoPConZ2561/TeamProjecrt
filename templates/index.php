@@ -11,16 +11,22 @@ $page = "index";
     <title>EVENTLY - main</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 🌟 เพิ่ม SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         body {
             font-family: "Kanit", sans-serif;
         }
-
         .option_header_text {
             font-family: "Kanit", sans-serif;
         }
-
         .option_text {
+            font-family: "Kanit", sans-serif;
+        }
+        /* ปรับฟอนต์ของ SweetAlert2 */
+        div.swal2-container {
             font-family: "Kanit", sans-serif;
         }
     </style>
@@ -54,8 +60,8 @@ $page = "index";
                         <div class="flex flex-col gap-1">
                             <label class="option_text font-medium text-gray-700">การแสดงผล</label>
                             <select id="ownership-filter" name="ownership_filter" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors bg-white cursor-pointer">
+                                <option value="not_mine">เฉพาะที่ฉันไม่ได้สร้าง (เริ่มต้น)</option>
                                 <option value="all">กิจกรรมทั้งหมด</option>
-                                <option value="not_mine">เฉพาะที่ฉันไม่ได้สร้าง</option>
                                 <option value="mine">เฉพาะที่ฉันเป็นคนสร้าง</option>
                             </select>
                         </div>
@@ -111,7 +117,7 @@ $page = "index";
                 </div>
 
                 <div id="events-container">
-                    <!-- โหลดข้อมูลครั้งแรกด้วย PHP ปกติ -->
+                    <!-- โหลดข้อมูลครั้งแรกด้วย PHP ปกติ (ดึงจาก routes) -->
                     <?php require_once __DIR__ . '/../routes/show_event.php'; ?>
                 </div>
             </div>
@@ -122,9 +128,99 @@ $page = "index";
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // 🌟 1. ดักจับ Alert ล็อกอินสำเร็จ
+            if (urlParams.get('status') === 'login_success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'เข้าสู่ระบบสำเร็จ!',
+                    text: 'ยินดีต้อนรับเข้าสู่ EVENTLY',
+                    confirmButtonColor: '#10b981',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                urlParams.delete('status');
+                window.history.replaceState(null, null, window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : ''));
+            }
+
+            // 🌟 2. ดักจับ Alert สถานะการสมัครกิจกรรม (reg_status)
+            if (urlParams.get('reg_status')) {
+                const regStatus = urlParams.get('reg_status');
+                
+                if (regStatus === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ส่งคำขอสำเร็จ!',
+                        text: 'กรุณารอผู้จัดกิจกรรมอนุมัติการเข้าร่วมของคุณ',
+                        confirmButtonColor: '#10b981'
+                    });
+                } else if (regStatus === 'already_registered') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'คุณสมัครไปแล้ว',
+                        text: 'คุณได้ส่งคำขอเข้าร่วมกิจกรรมนี้ไปแล้ว กรุณารอการตรวจสอบ',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                } else if (regStatus === 'full') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ที่นั่งเต็มแล้ว!',
+                        text: 'ขออภัย กิจกรรมนี้มีผู้เข้าร่วมเต็มจำนวนแล้ว',
+                        confirmButtonColor: '#f59e0b'
+                    });
+                } else if (regStatus === 'error' || regStatus === 'error_no_event') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด!',
+                        text: 'ไม่สามารถสมัครเข้าร่วมกิจกรรมได้ กรุณาลองใหม่อีกครั้ง',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+
+                // ล้าง url parameter ทิ้ง
+                urlParams.delete('reg_status');
+                const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                window.history.replaceState(null, null, newUrl);
+            }
+
+            // 🌟 3. ดักจับการคลิกปุ่ม "สมัครเข้าร่วมกิจกรรม" (Event Delegation)
+            document.body.addEventListener('click', function(e) {
+                // เช็คว่าที่กดเป็นปุ่ม (หรือตัวหนังสือข้างในปุ่ม) ที่มี class btn-register ไหม
+                const targetBtn = e.target.closest('.btn-register');
+                if (targetBtn) {
+                    e.preventDefault(); // หยุดการลิ้งค์เปลี่ยนหน้าไปก่อน
+                    
+                    const href = targetBtn.getAttribute('href'); // ดึงลิงก์มา
+
+                    Swal.fire({
+                        title: 'ยืนยันการสมัคร?',
+                        text: "คุณต้องการส่งคำขอเข้าร่วมกิจกรรมนี้ใช่หรือไม่",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#10b981', // สีเขียว
+                        cancelButtonColor: '#d1d5db',  // สีเทา
+                        confirmButtonText: 'ใช่, สมัครเลย',
+                        cancelButtonText: 'ยกเลิก',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // โชว์โหลด แล้วพาวิ่งไปหน้าประมวลผล
+                            Swal.showLoading();
+                            window.location.href = href;
+                        }
+                    });
+                }
+            });
+
+
+            // =====================================
+            // ส่วนของระบบคัดกรองข้อมูลกิจกรรม
+            // =====================================
             const searchInput = document.getElementById('search-input');
             const sortByInput = document.getElementById('sort-by');
-            const ownershipInput = document.getElementById('ownership-filter'); // ตัวแปรรับค่า ownership
+            const ownershipInput = document.getElementById('ownership-filter');
             const startDateInput = document.getElementById('start-date');
             const endDateInput = document.getElementById('end-date');
             const eventsContainer = document.getElementById('events-container');
@@ -133,22 +229,19 @@ $page = "index";
             const clearBtn = document.getElementById('clear-btn');
             const searchForm = document.getElementById('search-form');
 
-            // ฟังก์ชันดึงข้อมูลกิจกรรมผ่าน AJAX
             function fetchEvents() {
                 const search = searchInput.value;
                 const sortBy = sortByInput.value;
-                const ownership = ownershipInput ? ownershipInput.value : 'all'; // ถ้ายไม่ได้ล็อกอินจะเป็น all ตลอด
+                const ownership = ownershipInput ? ownershipInput.value : 'all'; 
                 const startDate = startDateInput.value;
                 const endDate = endDateInput.value;
 
-                // จัดการแสดง/ซ่อน ปุ่มล้างค่า
-                if (search || startDate || endDate || sortBy !== 'latest' || ownership !== 'all') {
+                if (search || startDate || endDate || sortBy !== 'latest' || (ownershipInput && ownership !== 'not_mine') || (!ownershipInput && ownership !== 'all')) {
                     clearBtn.classList.remove('hidden');
                 } else {
                     clearBtn.classList.add('hidden');
                 }
 
-                // จัดการสถานะคำค้นหา
                 if (search) {
                     searchStatus.classList.remove('hidden');
                     searchTermText.textContent = `"${search}"`;
@@ -156,7 +249,6 @@ $page = "index";
                     searchStatus.classList.add('hidden');
                 }
 
-                // เพิ่ม ownership เข้าไปใน URL Parameter ด้วย
                 const url = `../routes/show_event.php?search=${encodeURIComponent(search)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&sort_by=${encodeURIComponent(sortBy)}&ownership=${encodeURIComponent(ownership)}`;
 
                 fetch(url)
@@ -167,24 +259,21 @@ $page = "index";
                     .catch(error => console.error('Error fetching events:', error));
             }
 
-            // ดักจับ Event (Real-time)
             searchInput.addEventListener('input', fetchEvents);
             sortByInput.addEventListener('change', fetchEvents);
-            if(ownershipInput) ownershipInput.addEventListener('change', fetchEvents); // ดักการเปลี่ยนความเป็นเจ้าของ
+            if(ownershipInput) ownershipInput.addEventListener('change', fetchEvents); 
             startDateInput.addEventListener('change', fetchEvents);
             endDateInput.addEventListener('change', fetchEvents);
 
-            // ป้องกันฟอร์ม Reload
             searchForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 fetchEvents();
             });
 
-            // ปุ่มล้างตัวกรอง
             clearBtn.addEventListener('click', function() {
                 searchInput.value = '';
                 sortByInput.value = 'latest';
-                if(ownershipInput) ownershipInput.value = 'all';
+                if(ownershipInput) ownershipInput.value = 'not_mine';
                 startDateInput.value = '';
                 endDateInput.value = '';
                 fetchEvents();
