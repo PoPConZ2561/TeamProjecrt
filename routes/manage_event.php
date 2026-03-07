@@ -1,5 +1,4 @@
 <?php
-
 // 1. เช็คการล็อกอิน
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -54,6 +53,20 @@ if (count($my_events) > 0) {
         $selected_event = $my_events[0];
         $selected_event_id = $selected_event['event_id'];
     }
+}
+
+// ดึงรูปภาพทั้งหมดของกิจกรรมที่เลือก
+$event_images = [];
+if ($selected_event_id != null) {
+    $sql_imgs = "SELECT image_id, image_path FROM event_images WHERE event_id = ?";
+    $stmt_img = $conn->prepare($sql_imgs);
+    $stmt_img->bind_param("i", $selected_event_id);
+    $stmt_img->execute();
+    $res_img = $stmt_img->get_result();
+    while($img = $res_img->fetch_assoc()){
+        $event_images[] = $img;
+    }
+    $stmt_img->close();
 }
 
 // ==========================================
